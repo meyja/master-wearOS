@@ -1,9 +1,3 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter and
- * https://github.com/android/wear-os-samples/tree/main/ComposeAdvanced to find the most up to date
- * changes to the libraries and their usages.
- */
-
 package com.example.watchapp.presentation
 
 import android.Manifest
@@ -34,6 +28,7 @@ import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
 import com.example.watchapp.presentation.service.HeartRateService
 import com.example.watchapp.presentation.theme.WatchAppTheme
+import com.example.watchapp.presentation.utils.Actions
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,7 +94,7 @@ class MainActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
                 Intent(applicationContext, HeartRateService::class.java).also {
-                    it.action = HeartRateService.Actions.START.toString()
+                    it.action = Actions.START.toString()
                     startService(it)
                 }
                 //In preview we just change the boolean value
@@ -110,7 +105,7 @@ class MainActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(8.dp))
             Button(modifier = Modifier.padding(horizontal = 16.dp), onClick = {
                 Intent(applicationContext, HeartRateService::class.java).also {
-                    it.action = HeartRateService.Actions.STOP.toString()
+                    it.action = Actions.STOP.toString()
                     startService(it)
                 }
                 //In preview we just change the boolean value
@@ -156,10 +151,6 @@ class MainActivity : ComponentActivity() {
         }
 
         return false
-    }
-
-    enum class Actions {
-        START, STOP
     }
 }
 
