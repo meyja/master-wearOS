@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
 import com.example.watchapp.presentation.data.HealthServicesRepository
 import com.example.watchapp.presentation.data.MeasureMessage
+import com.example.watchapp.presentation.utils.Actions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -166,7 +167,4 @@ class HeartRateService() : Service(), SensorEventListener {
         Log.d(TAG, "onSensorChanged: sensor ${sensor.toString()}")
     }
 
-    enum class Actions {
-        START, STOP
-    }
 }
