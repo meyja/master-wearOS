@@ -31,7 +31,7 @@ class HeartRateService() : Service(), SensorEventListener {
 
     private val scope = CoroutineScope(SupervisorJob())
 
-    lateinit var notificationManager: NotificationManager
+    //lateinit var notificationManager: NotificationManager
 
     // a client is binding to the service with bindService()
     override fun onBind(intent: Intent?): IBinder? {
@@ -59,7 +59,7 @@ class HeartRateService() : Service(), SensorEventListener {
             .setPriority(-2)
         Log.d(TAG, "Notification built.")
 
-        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        //notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
 
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -99,7 +99,7 @@ class HeartRateService() : Service(), SensorEventListener {
     private fun stop() {
         stopForeground(STOP_FOREGROUND_DETACH)
         //scope.cancel()
-        notificationManager.cancel(1) // removes notification when service is destroyed
+        //notificationManager.cancel(1) // removes notification when service is destroyed
         sensorManager.unregisterListener(this)
         stopSelf()
     }
