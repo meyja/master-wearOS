@@ -17,6 +17,7 @@ import com.example.watchapp.presentation.data.HealthServicesRepository
 import com.example.watchapp.presentation.data.MeasureMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -29,18 +30,7 @@ class HeartRateService() : Service(), SensorEventListener {
 
     private val scope = CoroutineScope(SupervisorJob())
 
-    // service is being created
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(TAG, "onCreate: called")
-
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        checkHeartRateSensorFound()
-
-        hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-
-    }
+    lateinit var notificationManager: NotificationManager
 
     // a client is binding to the service with bindService()
     override fun onBind(intent: Intent?): IBinder? {
@@ -51,9 +41,7 @@ class HeartRateService() : Service(), SensorEventListener {
         super.onStartCommand(intent, flags, startId)
         Log.d(TAG, "Service started, onStartCommand was triggered.")
 
-        repo = HealthServicesRepository(this)
-        registerHrSensorListener()
-
+        //repo = HealthServicesRepository(this)
         handleIntentAction(intent?.action)
 
         return START_STICKY
@@ -70,11 +58,13 @@ class HeartRateService() : Service(), SensorEventListener {
             .setPriority(-2)
         Log.d(TAG, "Notification built.")
 
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
 
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        Log.d("MyService", "Started service in foreground.")
+        Log.d(TAG, "Started service in foreground.")
 
+        /*
         scope.launch {
             Log.d(TAG, "Starting coroutine for heartRateMeasureFlow.")
             repo.heartRateMeasureFlow()
@@ -102,11 +92,14 @@ class HeartRateService() : Service(), SensorEventListener {
                 Log.d(TAG, "Heartbeat log: $it.")
                 delay(5000)
             }
-        }
+        }*/
     }
 
     private fun stop() {
         stopForeground(STOP_FOREGROUND_DETACH)
+        //scope.cancel()
+        notificationManager.cancel(1) // removes notification when service is destroyed
+        sensorManager.unregisterListener(this)
         stopSelf()
     }
 
@@ -115,19 +108,26 @@ class HeartRateService() : Service(), SensorEventListener {
             Actions.START.toString() -> {
                 if (!isRunning) {
                     isRunning = true
+
+                    sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+                    if(!checkHeartRateSensorFound()) return; // If no HR sensor, do not start service
+
+                    hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
+                    registerHrSensorListener()
                     start()
                     Log.d(
-                        "MyService",
+                        TAG,
                         "START action received and service was not running. Service started."
                     )
                 } else {
-                    Log.d("MyService", "START action received but service was already running.")
+                    Log.d(TAG, "START action received but service was already running.")
                 }
             }
 
             Actions.STOP.toString() -> {
                 stop()
-                Log.d("MyService", "STOP action received. Service stopped.")
+                Log.d(TAG, "STOP action received. Service stopped.")
             }
         }
     }
@@ -146,12 +146,14 @@ class HeartRateService() : Service(), SensorEventListener {
         }
     }
 
-    private fun checkHeartRateSensorFound() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null) {
+    private fun checkHeartRateSensorFound(): Boolean {
+        return if (sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null) {
             Log.d(TAG, "onCreate: Success! Heart rate sensor found")
+            true
         } else {
             // Failure! No magnetometer.
             Log.d(TAG, "onCreate: Error, no heart rate sensor found.")
+            false
         }
     }
 

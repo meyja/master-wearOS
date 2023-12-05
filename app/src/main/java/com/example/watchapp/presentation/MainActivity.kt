@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
         }
 
         // set wake lock to keep CPU awake
-        acquireWakeLock()
+        //acquireWakeLock()
 
         val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
 
