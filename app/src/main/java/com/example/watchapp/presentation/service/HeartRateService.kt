@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
 import com.example.watchapp.presentation.data.HealthServicesRepository
+import com.example.watchapp.presentation.data.HeartRateStreamManager
 import com.example.watchapp.presentation.data.MeasureMessage
 import com.example.watchapp.presentation.utils.Actions
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,8 @@ class HeartRateService() : Service(), SensorEventListener {
     private var isRunning = false
 
     private val scope = CoroutineScope(SupervisorJob())
+
+    private val hrManager = HeartRateStreamManager()
 
     //lateinit var notificationManager: NotificationManager
 
@@ -127,7 +130,7 @@ class HeartRateService() : Service(), SensorEventListener {
             }
 
             Actions.STOP.toString() -> {
-                stop()
+                if(isRunning) stop() // Error if stop() is called but no service is running
                 Log.d(TAG, "STOP action received. Service stopped.")
             }
         }
@@ -161,6 +164,7 @@ class HeartRateService() : Service(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent) {
         val hr = event.values[0]
         Log.d(TAG, "onSensorChanged: hr ${hr}")
+        hrManager.addHrDatapoint(hr)
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
