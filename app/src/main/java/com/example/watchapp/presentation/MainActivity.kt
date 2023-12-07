@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.BODY_SENSORS),
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.BODY_SENSORS, Manifest.permission.ACCESS_FINE_LOCATION),
                 0
             )
         }

@@ -1,22 +1,32 @@
 package com.example.watchapp.presentation.service
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Service
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.LocationManager
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
 import com.example.watchapp.presentation.data.HealthServicesRepository
 import com.example.watchapp.presentation.data.HeartRateStreamManager
 import com.example.watchapp.presentation.data.MeasureMessage
 import com.example.watchapp.presentation.utils.Actions
+import com.google.android.gms.location.CurrentLocationRequest
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -32,7 +42,7 @@ class HeartRateService() : Service(), SensorEventListener {
 
     private val scope = CoroutineScope(SupervisorJob())
 
-    private val hrManager = HeartRateStreamManager()
+    private lateinit var hrManager: HeartRateStreamManager
 
     //lateinit var notificationManager: NotificationManager
 
@@ -64,9 +74,10 @@ class HeartRateService() : Service(), SensorEventListener {
 
         //notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
+        hrManager = HeartRateStreamManager(this)
+
 
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        Log.d(TAG, "Started service in foreground.")
 
         /*
         scope.launch {
@@ -170,5 +181,4 @@ class HeartRateService() : Service(), SensorEventListener {
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         Log.d(TAG, "onSensorChanged: sensor ${sensor.toString()}")
     }
-
 }
