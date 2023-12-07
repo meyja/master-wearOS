@@ -2,6 +2,7 @@ package com.example.watchapp.presentation
 
 import android.Manifest
 import android.app.ActivityManager
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -30,16 +31,23 @@ import com.example.watchapp.presentation.service.HeartRateService
 import com.example.watchapp.presentation.theme.WatchAppTheme
 import com.example.watchapp.presentation.utils.Actions
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.BODY_SENSORS, Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(
+                    Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.BODY_SENSORS,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ),
                 0
             )
         }
+
+        askPermissionForBackgroundUsage()
 
         // set wake lock to keep CPU awake
         //acquireWakeLock()
@@ -151,6 +159,39 @@ class MainActivity : ComponentActivity() {
         }
 
         return false
+    }
+
+    private fun askPermissionForBackgroundUsage() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this@MainActivity,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            )
+        ) {
+            AlertDialog.Builder(this)
+                .setTitle("Permission Needed!")
+                .setMessage("Background Location Permission Needed!, tap \"Allow all time in the next screen\"")
+                .setPositiveButton(
+                    "OK"
+                ) { dialog, which ->
+                    ActivityCompat.requestPermissions(
+                        this@MainActivity,
+                        arrayOf<String>(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                        0
+                    )
+                }
+                .setNegativeButton(
+                    "CANCEL"
+                ) { dialog, which ->
+                    // User declined for Background Location Permission.
+                }
+                .create().show()
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf<String>(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                0
+            )
+        }
     }
 }
 

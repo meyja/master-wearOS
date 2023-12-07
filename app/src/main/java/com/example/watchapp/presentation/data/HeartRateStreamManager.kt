@@ -98,6 +98,7 @@ class HeartRateStreamManager(context: Context) {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) { // not permission
+            Log.d(TAG, "getLastLocation: not permission")
             return null
         }
 
