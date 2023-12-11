@@ -4,15 +4,16 @@ import android.Manifest
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.pm.PackageManager
-import android.location.Location
 import android.location.LocationManager
-import android.os.Looper.getMainLooper
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -70,11 +71,11 @@ class HeartRateStreamManager(context: Context) {
     }
 
     /**
-     * Checks if data says someone is stressed, in a seperate thread
+     * Checks if data says someone is stressed, in a separate thread
      */
     private fun doAnalysis() {
-        val heartRateDataCopy = heartrateData.toList() // Need to be seperate copy if analysis takes awhile
-        scope.launch {// Seperate thread
+        val heartRateDataCopy = heartrateData.toList() // Need to be separate copy if analysis takes awhile
+        scope.launch {// Separate thread
             var sum: Float = 0.0F
             for (e in heartRateDataCopy) {
                 sum += e.hr
@@ -83,7 +84,14 @@ class HeartRateStreamManager(context: Context) {
             val loc = getLastLocation()
             Log.d(TAG, "doAnalysis: loc:${loc.toString()}")
             if (loc != null) {
-                Log.d(TAG, "doAnalysis: ${sum / heartRateDataCopy.size}, lat: ${loc.first}, lon: ${loc.second}")
+                val avg = sum / heartRateDataCopy.size
+
+                Log.d(TAG, "doAnalysis: ${avg}, lat: ${loc.first}, lon: ${loc.second}")
+
+                startWorker(avg, loc.first, loc.second)
+            }
+            else { // Only for debugging purposes
+                startWorker(0.1f, "0", "0")
             }
         }
 
@@ -116,6 +124,30 @@ class HeartRateStreamManager(context: Context) {
         val long = location.longitude.toString()
 
         return Pair(lat, long)
+
+    }
+
+    /**
+     * Starts a worker to do a network request, sends lat, lon, and avg.
+     * Network must be available for worker to start
+     */
+    private fun startWorker(avg: Float, lat: String, lon: String) {
+        // Putting data for worker to retrieve
+        val data: Data.Builder = Data.Builder()
+        data.putString("lat", lat)
+        data.putString("lon", lon)
+        data.putFloat("avg", avg)
+
+        // Creating Worker
+        val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
+
+        val oneTimeWork: OneTimeWorkRequest = OneTimeWorkRequestBuilder<SendDataWorker>()
+            .addTag("SendData")
+            .setInputData(data.build())
+            .setConstraints(builder.build())
+            .build()
+
+        WorkManager.getInstance(c).enqueue(oneTimeWork)
 
     }
 }
