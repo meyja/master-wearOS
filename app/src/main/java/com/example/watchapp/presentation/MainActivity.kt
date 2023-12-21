@@ -3,7 +3,6 @@ package com.example.watchapp.presentation
 import android.Manifest
 import android.app.ActivityManager
 import android.app.AlertDialog
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -17,7 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -25,11 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
-import com.example.watchapp.presentation.service.HeartRateService
+import com.example.watchapp.presentation.data.MainRepository
 import com.example.watchapp.presentation.theme.WatchAppTheme
-import com.example.watchapp.presentation.utils.Actions
 
 
 class MainActivity : ComponentActivity() {
@@ -52,20 +52,21 @@ class MainActivity : ComponentActivity() {
         // set wake lock to keep CPU awake
         //acquireWakeLock()
 
+
+
         val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
 
-        val runningServices: List<ActivityManager.RunningServiceInfo> =
-            activityManager.getRunningServices(Int.MAX_VALUE)
-
-        val running = mutableStateOf(
-            isServiceRunning(
-                runningServices, "com.example.watchapp.presentation.HeartRateService"
-            )
-        )
+        val repo = MainRepository(activityManager, this)
 
         setContent {
+            val viewModel = viewModel<MainViewModel>(factory = MainViewModel.MainViewModelFactory(repo))
+            val runningState by viewModel.isRunningState.collectAsStateWithLifecycle()
+
             WatchAppTheme {
-                MonitoringApp(running = running)
+                MonitoringApp(
+                    running = runningState,
+                    onStart = viewModel::startService,
+                    onStop = viewModel::stopService)
             }
         }
     }
@@ -80,7 +81,7 @@ class MainActivity : ComponentActivity() {
         // Initialize running state to false
         val running = remember { mutableStateOf(false) }
 
-        MonitoringApp(running = running)
+        MonitoringApp(true, {}, {})
     }
 
     /**
@@ -92,32 +93,23 @@ class MainActivity : ComponentActivity() {
      *
      */
     @Composable
-    fun MonitoringApp(running: MutableState<Boolean>) {
+    fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            TextFieldWithConditionalText(enabled = running.value)
+            TextFieldWithConditionalText(enabled = running)
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
-                Intent(applicationContext, HeartRateService::class.java).also {
-                    it.action = Actions.START.toString()
-                    startService(it)
-                }
-                //In preview we just change the boolean value
-                running.value = true
+                onStart()
+
             }) {
                 Text("Start", modifier = Modifier.padding(5.dp))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Button(modifier = Modifier.padding(horizontal = 16.dp), onClick = {
-                Intent(applicationContext, HeartRateService::class.java).also {
-                    it.action = Actions.STOP.toString()
-                    startService(it)
-                }
-                //In preview we just change the boolean value
-                running.value = false
+                onStop()
             }) {
                 Text("Stop", modifier = Modifier.padding(5.dp))
             }
@@ -143,22 +135,6 @@ class MainActivity : ComponentActivity() {
             PowerManager.PARTIAL_WAKE_LOCK, "HeartRateApp::AchieveWakeLock"
         )
         gfgPowerLatch.acquire(20 * 60 * 1000L) // 20 minutes
-    }
-
-    /**
-     * Check if a particular service is running
-     */
-    private fun isServiceRunning(
-        services: List<ActivityManager.RunningServiceInfo>, serviceName: String
-    ): Boolean {
-        for (serviceInfo in services) {
-            Log.d("isServiceRunning", serviceInfo.service.className)
-            if (serviceInfo.service.className == serviceName) {
-                return true
-            }
-        }
-
-        return false
     }
 
     private fun askPermissionForBackgroundUsage() {

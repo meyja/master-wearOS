@@ -143,7 +143,7 @@ class HeartRateStreamManager(context: Context) {
         val loc = await(fusedLocationProviderClient.getCurrentLocation(LocationRequest.QUALITY_HIGH_ACCURACY, cancelToken.token))
 
         Log.d(TAG, "getCurrentLocation: ${loc.toString()}")
-        return Pair(loc.latitude.toString(), loc.altitude.toString())
+        return Pair(loc.latitude.toString(), loc.longitude.toString())
     }
 
 
