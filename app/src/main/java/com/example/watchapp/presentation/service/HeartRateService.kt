@@ -38,6 +38,7 @@ class HeartRateService() : Service(), SensorEventListener {
     private lateinit var repo: HealthServicesRepository
     private lateinit var sensorManager: SensorManager
     private var hrSensor: Sensor? = null
+    private var accelerometerSensor: Sensor? = null
     private var isRunning = false
 
     private val scope = CoroutineScope(SupervisorJob())
@@ -126,10 +127,13 @@ class HeartRateService() : Service(), SensorEventListener {
 
                     sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-                    if(!checkHeartRateSensorFound()) return; // If no HR sensor, do not start service
+                    if(!checkHeartRateSensorFound() && !checkAccelerometerSensorFound()) return; // If no HR sensor, do not start service
 
                     hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
+                    accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
                     registerHrSensorListener()
+                    registerAccelerometerSensorListener()
                     start()
                     Log.d(
                         TAG,
@@ -155,9 +159,22 @@ class HeartRateService() : Service(), SensorEventListener {
                 hr,
                 SensorManager.SENSOR_DELAY_NORMAL
             )
-            Log.d(TAG, "Sensor Manager registered sensor listener.")
+            Log.d(TAG, "Sensor Manager registered HR sensor listener.")
         } ?: run {
             Log.d(TAG, "hrSensor is null, sensor listener couldn't be registered.")
+        }
+    }
+
+    private fun registerAccelerometerSensorListener() {
+        accelerometerSensor?.also { acc ->
+            sensorManager.registerListener(
+                this,
+                acc,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+            Log.d(TAG, "Sensor Manager registered Accelerometer sensor listener.")
+        } ?: run {
+            Log.d(TAG, "accelerometerSensor is null, sensor listener couldn't be registered.")
         }
     }
 
@@ -172,10 +189,26 @@ class HeartRateService() : Service(), SensorEventListener {
         }
     }
 
+    private fun checkAccelerometerSensorFound(): Boolean {
+        return if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+            Log.d(TAG, "onCreate: Success! Accelerometer sensor found")
+            true
+        } else {
+            Log.d(TAG, "onCreate: Error, no Accelerometer sensor found.")
+            false
+        }
+    }
+
     override fun onSensorChanged(event: SensorEvent) {
-        val hr = event.values[0]
-        Log.d(TAG, "onSensorChanged: hr ${hr}")
-        hrManager.addHrDatapoint(hr)
+        //Log.d(TAG, "onSensorChanged: ${event.toString()}")
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            Log.d(TAG, "onSensorChanged_TYPE_ACCELEROMETER: ${event.values[0]}")
+        }
+        else {
+            val hr = event.values[0]
+            Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
+            hrManager.addHrDatapoint(hr)
+        }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
