@@ -1,11 +1,21 @@
 package com.example.watchapp.presentation.data
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.watchapp.BuildConfig
+import com.example.watchapp.presentation.DetectedActivityReceiver
 import com.example.watchapp.presentation.service.HeartRateService
 import com.example.watchapp.presentation.utils.Actions
+import com.google.android.gms.location.ActivityRecognition
+import com.google.android.gms.location.ActivityTransition
+import com.google.android.gms.location.ActivityTransitionRequest
+import com.google.android.gms.location.DetectedActivity
 
 /**
  * MainRepository class responsible for managing services and interacting with the Android system.
@@ -45,6 +55,7 @@ class MainRepository(val activityManager: ActivityManager, val applicationContex
             it.action = Actions.START.toString()
             applicationContext.startService(it)
         }
+        RegisterAtivityTransition()
     }
 
     /**
@@ -56,5 +67,66 @@ class MainRepository(val activityManager: ActivityManager, val applicationContex
             it.action = Actions.STOP.toString()
             applicationContext.startService(it)
         }
+    }
+
+    /**
+     * https://heartbeat.comet.ml/detect-users-activity-in-android-using-activity-transition-api-f718c844efb2
+     */
+    @SuppressLint("MissingPermission")
+    private fun RegisterAtivityTransition() {
+        val transitions = mutableListOf<ActivityTransition>()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.RUNNING)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+            .build()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.RUNNING)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+            .build()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.WALKING)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+            .build()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.WALKING)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+            .build()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.ON_BICYCLE)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+            .build()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.ON_BICYCLE)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+            .build()
+
+        val request = ActivityTransitionRequest(transitions)
+
+        val intent = Intent(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
+        val pendingIntent = PendingIntent.getService(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val receiver = DetectedActivityReceiver()
+
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(
+            receiver, IntentFilter(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
+        )
+
+        val task = ActivityRecognition.getClient(applicationContext)
+            .requestActivityTransitionUpdates(request, pendingIntent)
+
+        task.addOnSuccessListener {
+            Log.d("ActivityRecognition", "Transitions Api registered with success")
+        }
+
+        task.addOnFailureListener { e: Exception ->
+            Log.d("ActivityRecognition", "Transitions Api could NOT be registered ${e.localizedMessage}")
+        }
+
+
     }
 }

@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,7 +24,11 @@ import com.example.watchapp.presentation.data.HealthServicesRepository
 import com.example.watchapp.presentation.data.HeartRateStreamManager
 import com.example.watchapp.presentation.data.MeasureMessage
 import com.example.watchapp.presentation.utils.Actions
+import com.google.android.gms.location.ActivityRecognition
+import com.google.android.gms.location.ActivityTransition
+import com.google.android.gms.location.ActivityTransitionRequest
 import com.google.android.gms.location.CurrentLocationRequest
+import com.google.android.gms.location.DetectedActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -148,6 +154,10 @@ class HeartRateService() : Service(), SensorEventListener {
                 if(isRunning) stop() // Error if stop() is called but no service is running
                 Log.d(TAG, "STOP action received. Service stopped.")
             }
+            
+            Actions.TRANSITION.toString() -> {
+                Log.d(TAG, "handleIntentAction: ")
+            }
         }
     }
 
@@ -170,13 +180,17 @@ class HeartRateService() : Service(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 acc,
-                SensorManager.SENSOR_DELAY_NORMAL
+                100_000_000_0// microseconds, there is an upperlimit
             )
             Log.d(TAG, "Sensor Manager registered Accelerometer sensor listener.")
         } ?: run {
             Log.d(TAG, "accelerometerSensor is null, sensor listener couldn't be registered.")
         }
     }
+
+    /**
+     * https://developer.android.com/develop/sensors-and-location/location/transitions
+     */
 
     private fun checkHeartRateSensorFound(): Boolean {
         return if (sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null) {
@@ -202,7 +216,16 @@ class HeartRateService() : Service(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent) {
         //Log.d(TAG, "onSensorChanged: ${event.toString()}")
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            Log.d(TAG, "onSensorChanged_TYPE_ACCELEROMETER: ${event.values[0]}")
+
+            /**
+             * All values are in SI units (m/s^2)
+             * values[0]: Acceleration minus Gx on the x-axis
+             * values[1]: Acceleration minus Gy on the y-axis
+             * values[2]: Acceleration minus Gz on the z-axis
+             *
+             * https://developer.android.com/reference/android/hardware/SensorEvent
+             */
+            Log.d(TAG, "onSensorChanged_TYPE_ACCELEROMETER: ${event.values[0]} ${event.values[1]} ${event.values[2]}")
         }
         else {
             val hr = event.values[0]

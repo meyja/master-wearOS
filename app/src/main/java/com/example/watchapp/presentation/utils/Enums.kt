@@ -1,5 +1,5 @@
 package com.example.watchapp.presentation.utils
 
 enum class Actions {
-    START, STOP
+    START, STOP, TRANSITION
 }

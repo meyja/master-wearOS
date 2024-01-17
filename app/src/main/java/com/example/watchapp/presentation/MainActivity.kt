@@ -41,7 +41,8 @@ class MainActivity : ComponentActivity() {
                 arrayOf(
                     Manifest.permission.POST_NOTIFICATIONS,
                     Manifest.permission.BODY_SENSORS,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACTIVITY_RECOGNITION
                 ),
                 0
             )
