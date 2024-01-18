@@ -17,6 +17,9 @@ class DetectedActivityReceiver() : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent) {
 
+        Log.d("DetectedActivityReceiver", "Received an action.")
+
+
         if (RECEIVER_ACTION == intent.action) {
             Log.d("DetectedActivityReceiver", "Received an unsupported action.")
             return

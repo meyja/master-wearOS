@@ -109,7 +109,8 @@ class MainRepository(val activityManager: ActivityManager, val applicationContex
         val request = ActivityTransitionRequest(transitions)
 
         val intent = Intent(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
-        val pendingIntent = PendingIntent.getService(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, intent,
+            PendingIntent.FLAG_IMMUTABLE);
         val receiver = DetectedActivityReceiver()
 
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(

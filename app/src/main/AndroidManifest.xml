@@ -56,6 +56,12 @@
         </activity>
         <service android:name=".presentation.service.HeartRateService"
             android:foregroundServiceType="location|dataSync"/>
+
+        <receiver android:name=".presentation.DetectedActivityReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.activity_recognition.ACTION_TRANSITION" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

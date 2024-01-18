@@ -139,7 +139,7 @@ class HeartRateService() : Service(), SensorEventListener {
                     accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
                     registerHrSensorListener()
-                    registerAccelerometerSensorListener()
+                    //registerAccelerometerSensorListener()
                     start()
                     Log.d(
                         TAG,
