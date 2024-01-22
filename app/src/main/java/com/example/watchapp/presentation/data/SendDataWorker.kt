@@ -34,9 +34,13 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
 
             if (response.isSuccessful) {
                 Log.d("PostDataWorker", "Request successful" + response.toString())
+
+                response.close()
                 return Result.success()
             } else {
                 Log.e("PostDataWorker", "Failed to post data: " + response.toString())
+
+                response.close()
                 return Result.failure()
             }
         } catch (e: IOException) {

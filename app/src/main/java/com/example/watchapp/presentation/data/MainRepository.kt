@@ -102,6 +102,16 @@ class MainRepository(val activityManager: ActivityManager, val applicationContex
             .build()
 
         transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.STILL)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+            .build()
+
+        transitions += ActivityTransition.Builder()
+            .setActivityType(DetectedActivity.STILL)
+            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+            .build()
+
+        transitions += ActivityTransition.Builder()
             .setActivityType(DetectedActivity.ON_BICYCLE)
             .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
             .build()
