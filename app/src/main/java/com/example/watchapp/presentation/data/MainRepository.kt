@@ -1,17 +1,11 @@
 package com.example.watchapp.presentation.data
 
-import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.watchapp.BuildConfig
-import com.example.watchapp.presentation.DetectedActivityReceiver
-import com.example.watchapp.presentation.MainViewModel
 import com.example.watchapp.presentation.service.HeartRateService
 import com.example.watchapp.presentation.utils.Actions
 import com.google.android.gms.location.ActivityRecognition

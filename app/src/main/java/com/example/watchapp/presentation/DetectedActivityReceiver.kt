@@ -11,19 +11,13 @@ import com.google.android.gms.location.DetectedActivity
 
 class DetectedActivityReceiver() : BroadcastReceiver() {
     val TAG = "DetectedActivityReceiver"
-
-
     val RECEIVER_ACTION = BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver"
 
-
-
     override fun onReceive(context: Context, intent: Intent) {
-
-        Log.d("DetectedActivityReceiver", "Received an action.")
-
+        Log.d(TAG, "Received an action.")
 
         if (RECEIVER_ACTION == intent.action) {
-            Log.d("DetectedActivityReceiver", "Received an unsupported action.")
+            Log.d(TAG, "Received an unsupported action.")
             return
         }
 
@@ -33,8 +27,8 @@ class DetectedActivityReceiver() : BroadcastReceiver() {
                 val activity = activityType(event.activityType)
                 val transition = transitionType(event.transitionType)
                 val message = "Transition: $activity ($transition)"
-                Log.d("DetectedActivityReceiver", "onReceive: Event -> $event")
-                Log.d("DetectedActivityReceiver", message)
+                Log.d(TAG, "onReceive: Event -> $event")
+                Log.d(TAG, message)
             }
         }
     }
