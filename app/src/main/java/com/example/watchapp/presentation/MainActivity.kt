@@ -3,6 +3,7 @@ package com.example.watchapp.presentation
 import android.Manifest
 import android.app.ActivityManager
 import android.app.AlertDialog
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -28,13 +29,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
+import com.example.watchapp.BuildConfig
 import com.example.watchapp.presentation.data.MainRepository
 import com.example.watchapp.presentation.theme.WatchAppTheme
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var receiver: DetectedActivityReceiver
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        receiver = DetectedActivityReceiver()
+        // Create the intent filter corresponding to the action string.
+        val intentFilter = IntentFilter(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
+
+        // Register the receiver to listen for the broadcast.
+        registerReceiver(receiver, intentFilter)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
                 this,
@@ -70,6 +79,12 @@ class MainActivity : ComponentActivity() {
                     onStop = viewModel::stopService)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Unregister the receiver to prevent memory leaks
+        unregisterReceiver(receiver)
     }
 
     /**

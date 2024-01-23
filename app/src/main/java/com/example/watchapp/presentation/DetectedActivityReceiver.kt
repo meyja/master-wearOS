@@ -10,6 +10,8 @@ import com.google.android.gms.location.ActivityTransitionResult
 import com.google.android.gms.location.DetectedActivity
 
 class DetectedActivityReceiver() : BroadcastReceiver() {
+    val TAG = "DetectedActivityReceiver"
+
 
     val RECEIVER_ACTION = BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver"
 
