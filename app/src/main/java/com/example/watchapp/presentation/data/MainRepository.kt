@@ -23,7 +23,7 @@ import com.google.android.gms.location.DetectedActivity
  * @property activityManager The [ActivityManager] instance used for managing activities and services.
  * @property applicationContext The [Context] used to access application-specific resources and components.
  */
-class MainRepository(val activityManager: ActivityManager, val applicationContext: Context) {
+class MainRepository(private val activityManager: ActivityManager, private val applicationContext: Context) {
 
 
     /**
@@ -55,7 +55,7 @@ class MainRepository(val activityManager: ActivityManager, val applicationContex
             it.action = Actions.START.toString()
             applicationContext.startService(it)
         }
-        RegisterAtivityTransition()
+        registerActivityTransition()
     }
 
     /**
@@ -72,8 +72,7 @@ class MainRepository(val activityManager: ActivityManager, val applicationContex
     /**
      * https://heartbeat.comet.ml/detect-users-activity-in-android-using-activity-transition-api-f718c844efb2
      */
-    @SuppressLint("MissingPermission")
-    private fun RegisterAtivityTransition() {
+    private fun registerActivityTransition() {
         val transitions = mutableListOf<ActivityTransition>()
 
         transitions += ActivityTransition.Builder()

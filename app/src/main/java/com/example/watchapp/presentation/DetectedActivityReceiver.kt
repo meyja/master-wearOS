@@ -11,11 +11,11 @@ import com.google.android.gms.location.DetectedActivity
 
 class DetectedActivityReceiver() : BroadcastReceiver() {
 
-    public val RECEIVER_ACTION = BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver"
+    val RECEIVER_ACTION = BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver"
 
 
 
-    override fun onReceive(context: Context?, intent: Intent) {
+    override fun onReceive(context: Context, intent: Intent) {
 
         Log.d("DetectedActivityReceiver", "Received an action.")
 
@@ -26,17 +26,18 @@ class DetectedActivityReceiver() : BroadcastReceiver() {
         }
 
         if (ActivityTransitionResult.hasResult(intent)) {
-            val result = ActivityTransitionResult.extractResult(intent)
-            for (event in result!!.transitionEvents) {
-                val activity = activityType(event.activityType).toString()
-                val transition = transitionType(event.transitionType).toString()
+            val result = ActivityTransitionResult.extractResult(intent)!!
+            for (event in result.transitionEvents) {
+                val activity = activityType(event.activityType)
+                val transition = transitionType(event.transitionType)
                 val message = "Transition: $activity ($transition)"
+                Log.d("DetectedActivityReceiver", "onReceive: Event -> $event")
                 Log.d("DetectedActivityReceiver", message)
             }
         }
     }
 
-    private fun transitionType(transitionType: Int): String? {
+    private fun transitionType(transitionType: Int): String {
         return when (transitionType) {
             ActivityTransition.ACTIVITY_TRANSITION_ENTER -> "ENTER"
             ActivityTransition.ACTIVITY_TRANSITION_EXIT -> "EXIT"
@@ -44,7 +45,7 @@ class DetectedActivityReceiver() : BroadcastReceiver() {
         }
     }
 
-    private fun activityType(activity: Int): String? {
+    private fun activityType(activity: Int): String {
         return when (activity) {
             DetectedActivity.RUNNING -> "RUNNING"
             DetectedActivity.ON_BICYCLE -> "ON_BICYCLE"
