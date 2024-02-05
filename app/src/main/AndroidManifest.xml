@@ -53,6 +53,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".presentation.StressfactorActivity" >
+
+        </activity>
         <service android:name=".presentation.service.HeartRateService"
             android:foregroundServiceType="location|dataSync"/>
 

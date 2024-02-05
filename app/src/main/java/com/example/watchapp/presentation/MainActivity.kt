@@ -3,13 +3,17 @@ package com.example.watchapp.presentation
 import android.Manifest
 import android.app.ActivityManager
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +41,7 @@ import com.example.watchapp.presentation.theme.WatchAppTheme
 
 class MainActivity : ComponentActivity() {
     private lateinit var receiver: DetectedActivityReceiver
+    private lateinit var stressfactorLauncher: ActivityResultLauncher<Unit>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         receiver = DetectedActivityReceiver()
@@ -68,6 +73,10 @@ class MainActivity : ComponentActivity() {
         val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
 
         val repo = MainRepository(activityManager, this)
+
+        stressfactorLauncher = registerForActivityResult(StressfactorContract()) {
+            Toast.makeText(applicationContext, it, Toast.LENGTH_SHORT).show()
+        }
 
         setContent {
             val viewModel = viewModel<MainViewModel>(factory = MainViewModel.MainViewModelFactory(repo))
@@ -133,6 +142,9 @@ class MainActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(8.dp))
             Button(modifier = Modifier.padding(horizontal = 16.dp).width(100.dp), onClick = {
                 Log.d("MainActivity", "MonitoringApp: Self Report clicked")
+                // startActivityForResult(Intent("test"), MainActivity)
+                stressfactorLauncher.launch()
+
             }) {
                 Text("Self Report", modifier = Modifier.padding(5.dp))
             }
