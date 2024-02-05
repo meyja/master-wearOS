@@ -156,11 +156,10 @@ class StressfactorActivity: ComponentActivity() {
     @Composable
     fun StressfactorApp(severity: MutableState<Int>) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
             Text(text = severity.value.toString(), fontSize = 80.sp)
-            Spacer(modifier = Modifier.height(8.dp))
             InlineSlider(
                 value = severity.value,
                 onValueChange = { severity.value = it},
