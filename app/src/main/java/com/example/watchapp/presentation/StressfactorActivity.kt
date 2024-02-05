@@ -137,11 +137,22 @@ class StressfactorActivity: ComponentActivity() {
             Log.d("StressfactorActivity", "getCurrentLocation: ${it.toString()}")
 
             startWorker(severity.toString(), it.latitude, it.longitude)
+            val result = Intent().putExtra(StressfactorContract.STRESSFACTOR, severity)
+            setResult(Activity.RESULT_OK, result)
+            finish()
         }
 
-        val result = Intent().putExtra(StressfactorContract.STRESSFACTOR, severity)
-        setResult(Activity.RESULT_OK, result)
-        finish()
+        task.addOnFailureListener {
+            val result = Intent().putExtra(StressfactorContract.STRESSFACTOR, -1)
+            setResult(Activity.RESULT_OK, result)
+            finish()
+        }
+
+        task.addOnCanceledListener {
+            val result = Intent().putExtra(StressfactorContract.STRESSFACTOR, -1)
+            setResult(Activity.RESULT_OK, result)
+            finish()
+        }
 
     }
 
