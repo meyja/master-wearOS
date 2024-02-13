@@ -171,7 +171,7 @@ class StressfactorActivity: ComponentActivity() {
             modifier = Modifier.fillMaxSize().padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
-            Text(text = severity.value.toString(), fontSize = 80.sp)
+            Text(text = severity.value.toString(), fontSize = 50.sp)
             InlineSlider(
                 value = severity.value,
                 onValueChange = { severity.value = it},

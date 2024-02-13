@@ -90,11 +90,12 @@ class HeartRateStreamManager(context: Context) {
             Log.d(TAG, "doAnalysis: loc:${loc.toString()}")
             if (loc != null) {
                 val avg = sum / heartRateDataCopy.size
+                val severity = ((avg%10)+1).toString()
                 val timestamp = System.currentTimeMillis()
 
-                Log.d(TAG, "doAnalysis: ${avg}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}")
+                Log.d(TAG, "doAnalysis: ${(avg%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}")
 
-                startWorker(avg.toString(), loc.first, loc.second, timestamp.toString())
+                startWorker(severity, loc.first, loc.second, timestamp.toString())
             }
             else { // Only for debugging purposes
                 startWorker("0", "0", "0", "00000")
@@ -143,7 +144,7 @@ class HeartRateStreamManager(context: Context) {
         val cancelToken = CancellationTokenSource()
         val loc = await(fusedLocationProviderClient.getCurrentLocation(LocationRequest.QUALITY_HIGH_ACCURACY, cancelToken.token))
 
-        Log.d(TAG, "getCurrentLocation: ${loc.toString()}")
+        //Log.d(TAG, "getCurrentLocation: ${loc.toString()}")
         return Pair(loc.latitude.toString(), loc.longitude.toString())
     }
 
