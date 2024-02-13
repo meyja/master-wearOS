@@ -90,12 +90,13 @@ class StressfactorActivity: ComponentActivity() {
         return loc
     }
 
-    private fun startWorker(avg: String, lat: Double, lon: Double) {
+    private fun startWorker(dataPoint: String, lat: String, lon: String, timestamp: String) {
         // Putting data for worker to retrieve
         val data: Data.Builder = Data.Builder()
-        data.putString("lat", lat.toString())
-        data.putString("lon", lon.toString())
-        data.putFloat("avg", avg.toFloat())
+        data.putString("lat", lat)
+        data.putString("lon", lon)
+        data.putString("dataPoint", dataPoint)
+        data.putString("timestamp", timestamp)
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
@@ -136,7 +137,7 @@ class StressfactorActivity: ComponentActivity() {
         task!!.addOnSuccessListener {
             Log.d("StressfactorActivity", "getCurrentLocation: ${it.toString()}")
 
-            startWorker(severity.toString(), it.latitude, it.longitude)
+            startWorker(severity.toString(), it.latitude.toString(), it.longitude.toString(), System.currentTimeMillis().toString())
             val result = Intent().putExtra(StressfactorContract.STRESSFACTOR, severity)
             setResult(Activity.RESULT_OK, result)
             finish()

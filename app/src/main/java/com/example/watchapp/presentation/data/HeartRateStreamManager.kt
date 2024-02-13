@@ -90,13 +90,14 @@ class HeartRateStreamManager(context: Context) {
             Log.d(TAG, "doAnalysis: loc:${loc.toString()}")
             if (loc != null) {
                 val avg = sum / heartRateDataCopy.size
+                val timestamp = System.currentTimeMillis()
 
-                Log.d(TAG, "doAnalysis: ${avg}, lat: ${loc.first}, lon: ${loc.second}")
+                Log.d(TAG, "doAnalysis: ${avg}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}")
 
-                startWorker(avg, loc.first, loc.second)
+                startWorker(avg.toString(), loc.first, loc.second, timestamp.toString())
             }
             else { // Only for debugging purposes
-                startWorker(0.1f, "0", "0")
+                startWorker("0", "0", "0", "00000")
             }
         }
 
@@ -151,12 +152,13 @@ class HeartRateStreamManager(context: Context) {
      * Starts a worker to do a network request, sends lat, lon, and avg.
      * Network must be available for worker to start
      */
-    private fun startWorker(avg: Float, lat: String, lon: String) {
+    private fun startWorker(dataPoint: String, lat: String, lon: String, timestamp: String) {
         // Putting data for worker to retrieve
         val data: Data.Builder = Data.Builder()
         data.putString("lat", lat)
         data.putString("lon", lon)
-        data.putFloat("avg", avg)
+        data.putString("dataPoint", dataPoint)
+        data.putString("timestamp", timestamp)
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
