@@ -15,10 +15,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 
 class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(context, workerParams) {
-    val c = context
     override fun doWork(): Result {
 
         val dataPoint = inputData.getString("dataPoint")
@@ -32,7 +32,16 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
 
         try {
 
-            val client = OkHttpClient()
+            // Create an OkHttpClient.Builder instance
+            val builder = OkHttpClient.Builder()
+
+            // Configure timeouts as needed (in milliseconds)
+            builder.connectTimeout(100, TimeUnit.SECONDS)
+            builder.readTimeout(100, TimeUnit.SECONDS)
+            builder.writeTimeout(100, TimeUnit.SECONDS)
+
+            // Build the OkHttpClient instance
+            val client = builder.build()
 
             // create json here
             val jsonObject = JSONObject()

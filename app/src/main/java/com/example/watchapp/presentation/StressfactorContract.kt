@@ -18,13 +18,14 @@ class StressfactorContract: ActivityResultContract<Unit, String>() {
     override fun parseResult(resultCode: Int, intent: Intent?): String {
         val stressfactor = intent!!.getIntExtra(STRESSFACTOR, -1)
 
-        if (stressfactor == -1) {
-            return "Failed"
-        }
-        else {
-            // Do THE DEW
-            Log.d("Severity", "parseResult: $stressfactor")
-            return "Success"
+        return when (stressfactor) {
+            -1 -> "Failed"
+            0 -> "Aborted"
+            else -> {
+                // Do THE DEW
+                Log.d("Severity", "parseResult: $stressfactor")
+                "Success"
+            }
         }
     }
 }

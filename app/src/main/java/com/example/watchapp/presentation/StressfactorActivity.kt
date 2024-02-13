@@ -126,6 +126,11 @@ class StressfactorActivity: ComponentActivity() {
         //Log.d("StressfactorActivity", "doAnalysis: ${severity}, lat: ${loc.first}, lon: ${loc.second}")
 
         //startWorker(severity.toFloat(), loc.first, loc.second)
+        if (severity == 0) {
+            val result = Intent().putExtra(StressfactorContract.STRESSFACTOR, severity)
+            setResult(Activity.RESULT_OK, result)
+            finish()
+        }
         val task = getCurrentLocationReq()
 
         if (task == null) {
