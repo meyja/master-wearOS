@@ -58,6 +58,7 @@ class StressfactorActivity: ComponentActivity() {
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     val TAG = "StressfactorActivity"
+    var hasClicked: Boolean = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,6 +123,7 @@ class StressfactorActivity: ComponentActivity() {
     }
 
     fun handleResult(severity: Int) {
+        hasClicked = true
 
         //Log.d("StressfactorActivity", "doAnalysis: ${severity}, lat: ${loc.first}, lon: ${loc.second}")
 
@@ -193,6 +195,7 @@ class StressfactorActivity: ComponentActivity() {
                     .width(100.dp),
                 onClick = {
                     Log.d("MainActivity", "MonitoringApp: Self Report clicked")
+                    if (hasClicked) return@Button
                     handleResult(severity.value)
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
