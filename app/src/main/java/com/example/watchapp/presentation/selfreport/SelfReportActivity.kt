@@ -83,7 +83,7 @@ class SelfReportActivity: ComponentActivity() {
             }
         }
     }
-    
+
     @Preview(device = "id:wearos_large_round", showBackground = true)
     @Composable
     fun StressfactorAppPreview() {
