@@ -87,7 +87,7 @@ class HeartRateStreamManager(context: Context) {
                 sum += e.hr
                 Log.d(TAG, e.hr.toString())
             }
-            val loc = getCurrentLocationBlocking(c, fusedLocationProviderClient)
+            val loc = getCurrentLocationBlocking(fusedLocationProviderClient)
             Log.d(TAG, "doAnalysis: loc:${loc.toString()}")
             if (loc != null) {
                 val avg = sum / heartRateDataCopy.size

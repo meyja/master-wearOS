@@ -3,12 +3,14 @@ package com.example.watchapp.presentation.selfreport
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationRequest
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +59,7 @@ import kotlinx.coroutines.flow.StateFlow
 class SelfReportActivity: ComponentActivity() {
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var workManager: WorkManager
     val TAG = "StressfactorActivity"
     var hasClicked: Boolean = false
 
@@ -65,17 +68,23 @@ class SelfReportActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(applicationContext)
-        val repo = SelfReportRepository(this)
+        workManager = WorkManager.getInstance(this)
+
+        val repo = SelfReportRepository()
 
         setContent {
-            //var severity: MutableState<Int> = remember { mutableIntStateOf(5) }
+            // Preparing ViewModel and repository
             val viewModel = viewModel<SelfReportViewModel>(factory = SelfReportViewModel.SelfReportViewModelFactory(repo))
+
+            // Primitive Dependency Injection - to lazy to use Dagger
+            viewModel.setLocationProvider(fusedLocationProviderClient)
+            viewModel.setWorkManager(workManager)
+
             val severity by viewModel.severity.collectAsStateWithLifecycle()
 
-            viewModel.returnMessage.observe(this) {// Success, Aborted, or Failed
-                val result = Intent().putExtra(SelfReportContract.STRESSFACTOR, it)
-                setResult(Activity.RESULT_OK, result)
-                finish()
+            viewModel.returnMessage.observe(this) {
+                // Success, Aborted, or Failed
+                finishReport(it)
             }
 
             WatchAppTheme {
@@ -87,8 +96,6 @@ class SelfReportActivity: ComponentActivity() {
     @Preview(device = "id:wearos_large_round", showBackground = true)
     @Composable
     fun StressfactorAppPreview() {
-        var severity: MutableState<Int> = remember { mutableIntStateOf(5) }
-
         StressfactorApp(5, {}, {})
     }
 
@@ -116,13 +123,30 @@ class SelfReportActivity: ComponentActivity() {
                     .padding(horizontal = 16.dp)
                     .width(100.dp),
                 onClick = {
-                    report()
+                    if(hasPermission()) report()
+                    else finishReport(2) // No permission
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
             ) {
                 Text("Report", modifier = Modifier.padding(5.dp))
             }
         }
+    }
+
+    private fun finishReport(returnCode: Int) {
+        val result = Intent().putExtra(SelfReportContract.STRESSFACTOR, returnCode)
+        setResult(Activity.RESULT_OK, result)
+        finish()
+    }
+
+    private fun hasPermission(): Boolean { // Permissions should be checked in View
+        return !(ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED)
     }
 
 }

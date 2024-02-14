@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.Constraints
 import androidx.work.NetworkType
+import androidx.work.WorkManager
 import com.example.watchapp.presentation.MainViewModel
 import com.example.watchapp.presentation.data.MainRepository
 import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
+import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -37,12 +39,10 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
         }
 
         repo.report(::onReceivedLocation)
-        _returnMessage.value = 1
-
     }
     
     private fun onReceivedLocation(loc: Pair<String, String>?) {
-        if (loc == null) {
+        if (loc == null) { // Location not working
             _returnMessage.value = -1
             return
         }
@@ -50,6 +50,14 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
         repo.startWorker(_severity.value.toString(), loc.first, loc.second)
 
         returnMessage.value = 1
+    }
+
+    fun setLocationProvider(fusedLocationProviderClient: FusedLocationProviderClient) {
+        repo.setLocationProvider(fusedLocationProviderClient)
+    }
+
+    fun setWorkManager(workManager: WorkManager) {
+        repo.setWorkManager(workManager)
     }
 
 

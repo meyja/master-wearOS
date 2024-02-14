@@ -15,9 +15,8 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Tasks
 
 @SuppressLint("MissingPermission")
-fun getCurrentLocationBlocking(c: Context, fusedLocationProviderClient: FusedLocationProviderClient): Pair<String, String>? {
+fun getCurrentLocationBlocking(fusedLocationProviderClient: FusedLocationProviderClient): Pair<String, String>? {
 
-    if (!hasPermission(c)) return null
 
     val cancelToken = CancellationTokenSource()
     val loc = Tasks.await(
@@ -33,13 +32,9 @@ fun getCurrentLocationBlocking(c: Context, fusedLocationProviderClient: FusedLoc
 
 @SuppressLint("MissingPermission")
 fun getCurrentLocationNonBlocking(
-    c: Context,
     fusedLocationProviderClient: FusedLocationProviderClient,
     callback: (Pair<String, String>?) -> Unit) {
 
-    if (!hasPermission(c)) {
-        return callback(null)
-    }
 
     val cancelToken = CancellationTokenSource()
     val loc =
@@ -60,14 +55,4 @@ fun getCurrentLocationNonBlocking(
         callback(null)
     }
 
-}
-
-private fun hasPermission(c: Context): Boolean {
-    return !(ActivityCompat.checkSelfPermission(
-        c,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-        c,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    ) != PackageManager.PERMISSION_GRANTED)
 }

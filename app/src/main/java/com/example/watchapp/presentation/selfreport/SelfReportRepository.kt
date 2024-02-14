@@ -12,10 +12,11 @@ import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 
-class SelfReportRepository(val c: Context) {
-    private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(c)
+class SelfReportRepository() {
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var workManager: WorkManager
     fun report(callback: (Pair<String, String>?) -> Unit) {
-        getCurrentLocationNonBlocking(c, fusedLocationProviderClient, callback)
+        getCurrentLocationNonBlocking(fusedLocationProviderClient, callback)
     }
 
     fun startWorker(dataPoint: String, lat: String, lon: String) {
@@ -36,6 +37,14 @@ class SelfReportRepository(val c: Context) {
             .setConstraints(builder.build())
             .build()
 
-        WorkManager.getInstance(c).enqueue(oneTimeWork)
+        workManager.enqueue(oneTimeWork)
+    }
+
+    fun setLocationProvider(locationProviderClient: FusedLocationProviderClient) {
+        fusedLocationProviderClient = locationProviderClient
+    }
+
+    fun setWorkManager(workManager: WorkManager) {
+        this.workManager = workManager
     }
 }

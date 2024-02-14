@@ -21,6 +21,7 @@ class SelfReportContract: ActivityResultContract<Unit, String>() {
         return when (stressfactor) {
             -1 -> "Failed"
             0 -> "Aborted"
+            2 -> "Missing Permissions"
             else -> {
                 "Success"
             }
