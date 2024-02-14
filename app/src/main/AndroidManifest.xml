@@ -54,7 +54,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".presentation.StressfactorActivity" >
+        <activity android:name=".presentation.selfreport.SelfReportActivity" >
 
         </activity>
         <service android:name=".presentation.service.HeartRateService"

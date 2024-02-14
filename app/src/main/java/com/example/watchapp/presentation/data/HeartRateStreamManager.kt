@@ -15,6 +15,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.watchapp.presentation.utils.getCurrentLocationBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationToken
@@ -86,7 +87,7 @@ class HeartRateStreamManager(context: Context) {
                 sum += e.hr
                 Log.d(TAG, e.hr.toString())
             }
-            val loc = getCurrentLocation()
+            val loc = getCurrentLocationBlocking(c, fusedLocationProviderClient)
             Log.d(TAG, "doAnalysis: loc:${loc.toString()}")
             if (loc != null) {
                 val avg = sum / heartRateDataCopy.size
@@ -102,50 +103,6 @@ class HeartRateStreamManager(context: Context) {
             }
         }
 
-    }
-
-    /**
-     * Retrieves the last known location of the device.
-     *
-     * @return A Pair of strings containing the latitude and longitude of the location, or null if the location could not be retrieved.
-     */
-    @SuppressLint("MissingPermission")
-    private fun getLastLocation(): Pair<String, String>? { // currently not used
-        if (!hasPermission()) return null
-
-        val lm = c.getSystemService(LOCATION_SERVICE) as LocationManager
-        val location = lm.getLastKnownLocation(LocationManager.FUSED_PROVIDER)
-
-        //lm.getCurrentLocation()
-
-        if (location == null) {
-            Log.d(TAG, "getLastLocation: null")
-            return null
-        }
-
-        val lat = location.latitude.toString()
-        val long = location.longitude.toString()
-
-        return Pair(lat, long)
-
-    }
-
-    /**
-     * Retrieves the current location of the device using the FusedLocationProviderClient.
-     * Active retrieval.
-     *
-     * @return A Pair of strings containing the latitude and longitude of the current location, or null if the location could not be retrieved.
-     */
-    @SuppressLint("MissingPermission")
-    fun getCurrentLocation(): Pair<String, String>? {
-
-        if (!hasPermission()) return null
-
-        val cancelToken = CancellationTokenSource()
-        val loc = await(fusedLocationProviderClient.getCurrentLocation(LocationRequest.QUALITY_HIGH_ACCURACY, cancelToken.token))
-
-        //Log.d(TAG, "getCurrentLocation: ${loc.toString()}")
-        return Pair(loc.latitude.toString(), loc.longitude.toString())
     }
 
 
@@ -172,20 +129,5 @@ class HeartRateStreamManager(context: Context) {
 
         WorkManager.getInstance(c).enqueue(oneTimeWork)
 
-    }
-
-    /**
-     * Checking if the device has the correct permissions to do the location requests
-     *
-     * @return Boolean true if app has permission, false if not
-     */
-    private fun hasPermission(): Boolean {
-        return !(ActivityCompat.checkSelfPermission(
-            c,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-            c,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED)
     }
 }
