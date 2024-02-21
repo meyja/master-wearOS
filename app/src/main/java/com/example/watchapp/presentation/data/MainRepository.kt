@@ -1,5 +1,6 @@
 package com.example.watchapp.presentation.data
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.Context
@@ -54,7 +55,7 @@ class MainRepository(
             it.action = Actions.START.toString()
             applicationContext.startService(it)
         }
-        registerActivityTransition()
+        //registerActivityTransition()
     }
 
     /**
@@ -71,6 +72,7 @@ class MainRepository(
     /**
      * https://heartbeat.comet.ml/detect-users-activity-in-android-using-activity-transition-api-f718c844efb2
      */
+    @SuppressLint("MissingPermission")
     private fun registerActivityTransition() {
         val transitions = getTransitionsList()
         val request = ActivityTransitionRequest(transitions)
@@ -81,8 +83,7 @@ class MainRepository(
         );
 
         val activityRecognitionClient = ActivityRecognition.getClient(applicationContext)
-        val task =
-            activityRecognitionClient.requestActivityTransitionUpdates(request, pendingIntent)
+        val task = activityRecognitionClient.requestActivityTransitionUpdates(request, pendingIntent)
 
         task.addOnSuccessListener {
             Log.d("ActivityRecognition", "Transitions Api registered with success")

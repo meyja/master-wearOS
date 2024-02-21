@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.IntentFilter
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -47,7 +48,6 @@ class MainActivity : ComponentActivity() {
         receiver = DetectedActivityReceiver()
         // Create the intent filter corresponding to the action string.
         val intentFilter = IntentFilter(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
-
         // Register the receiver to listen for the broadcast.
         registerReceiver(receiver, intentFilter)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
