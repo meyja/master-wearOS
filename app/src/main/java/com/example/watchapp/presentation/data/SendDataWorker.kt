@@ -25,6 +25,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
         val lat = inputData.getString("lat")
         val lon = inputData.getString("lon")
         val timestamp = inputData.getString("timestamp")
+        val id = inputData.getString("sessionId")
 
         Log.d(TAG, "doWork: ${lat}, ${lon}, ${dataPoint}, ${timestamp}")
 
@@ -50,6 +51,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
                 jsonObject.put("lon", lon!!)
                 jsonObject.put("dataPoint", dataPoint!!)
                 jsonObject.put("timestamp", timestamp!!)
+                jsonObject.put("sessionId", id!!)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }

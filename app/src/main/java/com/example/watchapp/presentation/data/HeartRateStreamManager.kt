@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.Tasks.await
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 
 class HeartRateStreamManager(context: Context) {
@@ -40,6 +41,8 @@ class HeartRateStreamManager(context: Context) {
 
     private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+
+    private lateinit var sessionId: UUID
 
 
     //val c = context
@@ -117,6 +120,7 @@ class HeartRateStreamManager(context: Context) {
         data.putString("lon", lon)
         data.putString("dataPoint", dataPoint)
         data.putString("timestamp", timestamp)
+        data.putString("sessionId", sessionId.toString())
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
@@ -129,5 +133,10 @@ class HeartRateStreamManager(context: Context) {
 
         WorkManager.getInstance(c).enqueue(oneTimeWork)
 
+    }
+
+    fun setSessionId(sessionId: UUID) {
+        Log.d(TAG, "setSessionId: $sessionId")
+        this.sessionId = sessionId
     }
 }

@@ -11,6 +11,7 @@ import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import java.util.UUID
 
 class SelfReportRepository() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -27,6 +28,7 @@ class SelfReportRepository() {
         data.putString("lon", lon)
         data.putString("dataPoint", dataPoint)
         data.putString("timestamp", timestamp)
+        data.putString("sessionId", UUID.randomUUID().toString())
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)

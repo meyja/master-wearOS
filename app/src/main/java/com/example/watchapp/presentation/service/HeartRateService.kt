@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.hardware.Sensor
@@ -38,6 +39,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.UUID
 
 class HeartRateService() : Service(), SensorEventListener {
     val TAG = "HeartRateService"
@@ -82,6 +85,7 @@ class HeartRateService() : Service(), SensorEventListener {
         //notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         hrManager = HeartRateStreamManager(this)
+        hrManager.setSessionId(getSessionId())
 
 
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -236,5 +240,39 @@ class HeartRateService() : Service(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         Log.d(TAG, "onSensorChanged: sensor ${sensor.toString()}")
+    }
+
+    private fun getSessionId(): UUID {
+        // Get existing sessionId and timestamp
+        val sharedPreferences = getSharedPreferences("stressMap", 0)
+
+        val id = sharedPreferences.getString("sessionId", null) ?: return createAndSaveUUID(sharedPreferences)
+        val timestamp = sharedPreferences.getString("idTimestamp", null) ?: return createAndSaveUUID(sharedPreferences)
+
+        // There was an existing id and timestamp in sharedPreferences
+        val today = LocalDate.now()
+        val todayString = "${today.dayOfYear}${today.month.value}${today.dayOfMonth}"
+
+        if(timestamp == todayString) return UUID.fromString(id) // Same date - return existing UUID
+
+        return createAndSaveUUID(sharedPreferences)
+    }
+
+    private fun createAndSaveUUID(sharedPreferences: SharedPreferences): UUID {
+
+        // There was an existing id and timestamp in sharedPreferences
+        val today = LocalDate.now()
+        val todayString = "${today.dayOfYear}${today.month.value}${today.dayOfMonth}"
+
+        // Create new UUID
+        val newId = UUID.randomUUID()
+
+        // Save to sharedPreferences
+        val editor = sharedPreferences.edit()
+        editor.putString("sessionId", newId.toString())
+        editor.putString("idTimestamp", todayString)
+        editor.apply()
+
+        return newId
     }
 }
