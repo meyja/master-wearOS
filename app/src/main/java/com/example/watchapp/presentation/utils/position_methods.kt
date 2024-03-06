@@ -24,9 +24,9 @@ fun getCurrentLocationBlocking(fusedLocationProviderClient: FusedLocationProvide
             LocationRequest.QUALITY_HIGH_ACCURACY,
             cancelToken.token
         )
-    )
+    ) ?: return null
 
-    //Log.d(TAG, "getCurrentLocation: ${loc.toString()}")
+    Log.d("local", "getCurrentLocation: ${loc.toString()}")
     return Pair(loc.latitude.toString(), loc.longitude.toString())
 }
 

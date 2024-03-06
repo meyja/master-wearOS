@@ -171,7 +171,7 @@ class HeartRateService() : Service(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 hr,
-                SensorManager.SENSOR_DELAY_NORMAL
+                100_000_000
             )
             Log.d(TAG, "Sensor Manager registered HR sensor listener.")
         } ?: run {

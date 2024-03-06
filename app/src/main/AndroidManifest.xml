@@ -23,6 +23,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+
     <uses-feature android:name="android.hardware.type.watch" />
 
     <application
@@ -58,7 +62,7 @@
 
         </activity>
         <service android:name=".presentation.service.HeartRateService"
-            android:foregroundServiceType="location|dataSync"/>
+            android:foregroundServiceType="location|dataSync|microphone"/>
 
         <receiver android:name=".presentation.DetectedActivityReceiver" android:exported="true">
             <intent-filter>
