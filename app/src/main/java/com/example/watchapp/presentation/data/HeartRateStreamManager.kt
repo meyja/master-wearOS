@@ -1,17 +1,7 @@
 package com.example.watchapp.presentation.data
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Context.LOCATION_SERVICE
-import android.content.pm.PackageManager
-import android.location.LocationManager
-import android.location.LocationRequest
-import android.media.MediaRecorder
-import android.os.Looper
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.location.LocationRequestCompat.Quality
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
@@ -20,24 +10,15 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.watchapp.presentation.location.DefaultLocationClient
 import com.example.watchapp.presentation.location.LocationClient
-import com.example.watchapp.presentation.utils.getCurrentLocationBlocking
+import com.example.watchapp.presentation.utils.getDecibel
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.tasks.CancellationToken
-import com.google.android.gms.tasks.CancellationTokenSource
-import com.google.android.gms.tasks.Tasks.await
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.UUID
-
 
 class HeartRateStreamManager(context: Context) {
 
@@ -57,9 +38,7 @@ class HeartRateStreamManager(context: Context) {
     val c = context
 
     private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    private lateinit var locationClient: LocationClient
-
-    private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private var locationClient: LocationClient
 
     private lateinit var sessionId: UUID
 
@@ -141,7 +120,7 @@ class HeartRateStreamManager(context: Context) {
             //if (loc == null) return@launch
             val loc = lastLocation ?: return@launch
 
-            val dB = recordAndMeasure()
+            val dB = getDecibel(c)
 
             Log.d(TAG, "doAnalysis: ${(avg%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: $dB")
 
@@ -182,53 +161,4 @@ class HeartRateStreamManager(context: Context) {
         this.sessionId = sessionId
     }
 
-    private fun recordAndMeasure(): Double {
-        // Initialize variables
-        val TIME_AUDIO: Long = 500 // Length of recording in ms
-        val recorder = MediaRecorder(c)
-        val audioFile = createTempAudioFile() // Create a temporary file to store the recording
-
-        try {
-            // Configure recorder settings
-            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            recorder.setOutputFile(audioFile.absolutePath)
-
-            // Start recording
-            recorder.prepare()
-            recorder.start()
-            recorder.maxAmplitude // need to do this once before actually receiving max amplitude for some reason
-
-            // Wait for 1 second
-            Thread.sleep(TIME_AUDIO)
-
-            // Stop recording
-            recorder.stop()
-
-            val maxAmplitude = recorder.maxAmplitude
-            //Log.d(TAG, "maxamp: $maxAmplitude")
-            if (maxAmplitude <= 0) return 0.0
-
-            // Turning amplitude to decibel, +90 constant to have positive numbers
-            val dB = (20 * Math.log10(maxAmplitude / 32767.0))+90
-
-            return dB
-        } catch (e: Exception) {
-            Log.e("AudioRecording", "Error recording audio:", e)
-            return -1.0 // Indicate error
-        } finally {
-            recorder.release()
-            audioFile.delete() // Delete the temporary file
-        }
-
-    }
-
-    private fun createTempAudioFile(): File {
-        val tempDir = File(c.cacheDir, "audio_recordings")
-        if (!tempDir.exists()) {
-            tempDir.mkdirs()
-        }
-        return File(tempDir, "recording_${System.currentTimeMillis()}.aac")
-    }
 }

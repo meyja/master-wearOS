@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -88,7 +89,7 @@ class HeartRateService() : Service(), SensorEventListener {
         hrManager.setSessionId(getSessionId())
 
 
-        startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_MICROPHONE)
 
         /*
         scope.launch {
