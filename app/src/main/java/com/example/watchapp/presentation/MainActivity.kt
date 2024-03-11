@@ -3,18 +3,24 @@ package com.example.watchapp.presentation
 import android.Manifest
 import android.app.ActivityManager
 import android.app.AlertDialog
+import android.content.IntentFilter
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,20 +34,31 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
+import com.example.watchapp.BuildConfig
 import com.example.watchapp.presentation.data.MainRepository
+import com.example.watchapp.presentation.selfreport.SelfReportContract
 import com.example.watchapp.presentation.theme.WatchAppTheme
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var receiver: DetectedActivityReceiver
+    private lateinit var stressfactorLauncher: ActivityResultLauncher<Unit>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        receiver = DetectedActivityReceiver()
+        // Create the intent filter corresponding to the action string.
+        val intentFilter = IntentFilter(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
+        // Register the receiver to listen for the broadcast.
+        registerReceiver(receiver, intentFilter)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(
                     Manifest.permission.POST_NOTIFICATIONS,
                     Manifest.permission.BODY_SENSORS,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACTIVITY_RECOGNITION
                 ),
                 0
             )
@@ -58,6 +75,10 @@ class MainActivity : ComponentActivity() {
 
         val repo = MainRepository(activityManager, this)
 
+        stressfactorLauncher = registerForActivityResult(SelfReportContract()) {
+            Toast.makeText(applicationContext, it, Toast.LENGTH_SHORT).show()
+        }
+
         setContent {
             val viewModel = viewModel<MainViewModel>(factory = MainViewModel.MainViewModelFactory(repo))
             val runningState by viewModel.isRunningState.collectAsStateWithLifecycle()
@@ -69,6 +90,12 @@ class MainActivity : ComponentActivity() {
                     onStop = viewModel::stopService)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Unregister the receiver to prevent memory leaks
+        unregisterReceiver(receiver)
     }
 
     /**
@@ -112,6 +139,15 @@ class MainActivity : ComponentActivity() {
                 onStop()
             }) {
                 Text("Stop", modifier = Modifier.padding(5.dp))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(modifier = Modifier.padding(horizontal = 16.dp).width(100.dp), onClick = {
+                Log.d("MainActivity", "MonitoringApp: Self Report clicked")
+                // startActivityForResult(Intent("test"), MainActivity)
+                stressfactorLauncher.launch()
+
+            }) {
+                Text("Self Report", modifier = Modifier.padding(5.dp))
             }
         }
     }
