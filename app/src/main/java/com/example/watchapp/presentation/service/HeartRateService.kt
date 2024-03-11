@@ -1,51 +1,26 @@
 package com.example.watchapp.presentation.service
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Service
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.location.LocationManager
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
-import com.example.watchapp.presentation.data.HealthServicesRepository
-import com.example.watchapp.presentation.data.HeartRateStreamManager
-import com.example.watchapp.presentation.data.MeasureMessage
 import com.example.watchapp.presentation.utils.Actions
-import com.google.android.gms.location.ActivityRecognition
-import com.google.android.gms.location.ActivityTransition
-import com.google.android.gms.location.ActivityTransitionRequest
-import com.google.android.gms.location.CurrentLocationRequest
-import com.google.android.gms.location.DetectedActivity
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.UUID
 
 class HeartRateService() : Service(), SensorEventListener {
     val TAG = "HeartRateService"
-    private lateinit var repo: HealthServicesRepository
     private lateinit var sensorManager: SensorManager
     private var hrSensor: Sensor? = null
     private var accelerometerSensor: Sensor? = null

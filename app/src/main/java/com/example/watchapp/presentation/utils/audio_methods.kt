@@ -23,7 +23,7 @@ fun getDecibel(c: Context): Double {
         recorder.start()
         recorder.maxAmplitude // need to do this once before actually receiving max amplitude for some reason
 
-        // Wait for 1 second
+        // Wait for x.x second
         Thread.sleep(TIME_AUDIO)
 
         // Stop recording

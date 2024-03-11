@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation.data
+package com.example.watchapp.presentation.service
 
 import android.content.Context
 import android.util.Log
@@ -8,6 +8,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.watchapp.presentation.data.DataPoint
+import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.location.DefaultLocationClient
 import com.example.watchapp.presentation.location.LocationClient
 import com.example.watchapp.presentation.utils.getDecibel
