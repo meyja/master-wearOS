@@ -42,7 +42,7 @@ class HeartRateService() : Service(), SensorEventListener {
         Log.d(TAG, "Service started, onStartCommand was triggered.")
 
         //repo = HealthServicesRepository(this)
-        handleIntentAction(intent?.action)
+        handleIntentAction(intent)
 
         return START_STICKY
     }
@@ -102,11 +102,12 @@ class HeartRateService() : Service(), SensorEventListener {
         //scope.cancel()
         //notificationManager.cancel(1) // removes notification when service is destroyed
         sensorManager.unregisterListener(this)
+        hrManager.close()
         stopSelf()
     }
 
-    private fun handleIntentAction(action: String?) {
-        when (action) {
+    private fun handleIntentAction(intent: Intent?) {
+        when (intent?.action) {
             Actions.START.toString() -> {
                 if (!isRunning) {
                     isRunning = true
@@ -136,7 +137,7 @@ class HeartRateService() : Service(), SensorEventListener {
             }
             
             Actions.TRANSITION.toString() -> {
-                Log.d(TAG, "handleIntentAction: ")
+                Log.d(TAG, "handleIntentAction: STILL ${intent.getStringExtra("transitionType")}")
             }
         }
     }

@@ -17,6 +17,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -161,6 +162,10 @@ class HeartRateStreamManager(context: Context) {
     fun setSessionId(sessionId: UUID) {
         Log.d(TAG, "setSessionId: $sessionId")
         this.sessionId = sessionId
+    }
+
+    fun close() {
+        scope.cancel()
     }
 
 }

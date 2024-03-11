@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.example.watchapp.BuildConfig
+import com.example.watchapp.presentation.service.HeartRateService
+import com.example.watchapp.presentation.utils.Actions
 import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionResult
@@ -26,6 +28,15 @@ class DetectedActivityReceiver() : BroadcastReceiver() {
                     // Do something useful here...
 
                     val info = "Transition: ${ActivityTransitionUtil.toActivityString(event.activityType)} - ${ActivityTransitionUtil.toTransitionType(event.transitionType)}"
+                    if(ActivityTransitionUtil.toActivityString(event.activityType) == "STILL") {
+                        Log.d(TAG, "onReceive: STILL")
+                        val transitionType = ActivityTransitionUtil.toTransitionType(event.transitionType)
+                        val newIntent = Intent(context, HeartRateService::class.java)
+                        newIntent.action = Actions.TRANSITION.toString()
+                        newIntent.putExtra("transitionType", transitionType)
+                        context.applicationContext.startService(newIntent)
+
+                    }
                     Log.d(TAG, "onReceive: $info")
                 }
             }

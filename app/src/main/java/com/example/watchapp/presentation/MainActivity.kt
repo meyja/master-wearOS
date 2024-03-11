@@ -189,14 +189,3 @@ fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit, sta
         }
     }
 }
-
-@Composable
-fun TextFieldWithConditionalText(enabled: Boolean) {
-
-    val textB = when (enabled) {
-        true -> "Enabled"
-        false -> "Disabled"
-    }
-
-    Text(text = textB)
-}
