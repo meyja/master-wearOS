@@ -58,13 +58,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".presentation.selfreport.SelfReportActivity" >
-
-        </activity>
+        <activity android:name=".presentation.selfreport.SelfReportActivity" />
         <service android:name=".presentation.service.HeartRateService"
             android:foregroundServiceType="location|dataSync|microphone"/>
 
-        <receiver android:name=".presentation.DetectedActivityReceiver" android:exported="true">
+        <receiver android:name=".presentation.DetectedActivityReceiver"
+            android:exported="true"
+            android:permission="com.google.android.gms.permission.ACTIVITY_RECOGNITION">
+
             <intent-filter>
                 <action android:name="android.activity_recognition.ACTION_TRANSITION" />
             </intent-filter>

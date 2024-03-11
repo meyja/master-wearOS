@@ -88,47 +88,7 @@ class SelfReportActivity: ComponentActivity() {
             }
 
             WatchAppTheme {
-                StressfactorApp(severity, viewModel::changeSeverity, viewModel::report)
-            }
-        }
-    }
-
-    @Preview(device = "id:wearos_large_round", showBackground = true)
-    @Composable
-    fun StressfactorAppPreview() {
-        StressfactorApp(5, {}, {})
-    }
-
-    @Composable
-    fun StressfactorApp(severity: Int, onSeverityChange: (Int)->Unit, report: ()->Unit) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Text(text = severity.toString(), fontSize = 50.sp)
-            InlineSlider(
-                value = severity,
-                onValueChange = { onSeverityChange(it)},
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
-                valueProgression = 0..10,
-                segmented = false,
-                colors = InlineSliderDefaults.colors(selectedBarColor = Color.Red)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .width(100.dp),
-                onClick = {
-                    if(hasPermission()) report()
-                    else finishReport(2) // No permission
-                },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
-            ) {
-                Text("Report", modifier = Modifier.padding(5.dp))
+                StressfactorApp(severity, viewModel::changeSeverity, viewModel::report, ::hasPermission, ::finishReport)
             }
         }
     }
@@ -149,4 +109,47 @@ class SelfReportActivity: ComponentActivity() {
         ) != PackageManager.PERMISSION_GRANTED)
     }
 
+}
+
+@Preview(device = "id:wearos_large_round", showBackground = true, showSystemUi = true)
+@Composable
+fun StressfactorAppPreview() {
+    fun example(): Boolean {
+        return true
+    }
+    StressfactorApp(5, {}, {}, ::example, {})
+}
+
+@Composable
+fun StressfactorApp(severity: Int, onSeverityChange: (Int)->Unit, report: ()->Unit, hasPermission: ()->Boolean, finishReport: (Int) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+        Text(text = severity.toString(), fontSize = 50.sp)
+        InlineSlider(
+            value = severity,
+            onValueChange = { onSeverityChange(it)},
+            increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
+            decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
+            valueProgression = 0..10,
+            segmented = false,
+            colors = InlineSliderDefaults.colors(selectedBarColor = Color.Red)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .width(100.dp),
+            onClick = {
+                if(hasPermission()) report()
+                else finishReport(2) // No permission
+            },
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
+        ) {
+            Text("Report", modifier = Modifier.padding(5.dp))
+        }
+    }
 }

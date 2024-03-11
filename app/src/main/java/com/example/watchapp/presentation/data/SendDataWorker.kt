@@ -27,7 +27,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
         val timestamp = inputData.getString("timestamp")
         val id = inputData.getString("sessionId")
 
-        Log.d(TAG, "doWork: ${lat}, ${lon}, ${dataPoint}, ${timestamp}")
+        Log.d("SendDataWorker", "doWork: ${lat}, ${lon}, ${dataPoint}, ${timestamp}")
 
         if (dataPoint.equals(null) || lat.equals(null) || lon.equals(null) || timestamp.equals(null)) return Result.failure()
 

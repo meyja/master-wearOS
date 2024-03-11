@@ -1,10 +1,7 @@
 package com.example.watchapp.presentation
 
 import android.Manifest
-import android.app.ActivityManager
 import android.app.AlertDialog
-import android.content.IntentFilter
-import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -27,14 +24,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Switch
+import androidx.wear.compose.material.SwitchDefaults
 import androidx.wear.compose.material.Text
-import com.example.watchapp.BuildConfig
 import com.example.watchapp.presentation.data.MainRepository
 import com.example.watchapp.presentation.selfreport.SelfReportContract
 import com.example.watchapp.presentation.theme.WatchAppTheme
@@ -46,10 +47,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         receiver = DetectedActivityReceiver()
-        // Create the intent filter corresponding to the action string.
-        val intentFilter = IntentFilter(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
-        // Register the receiver to listen for the broadcast.
-        registerReceiver(receiver, intentFilter)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
                 this,
@@ -66,14 +63,7 @@ class MainActivity : ComponentActivity() {
 
         askPermissionForBackgroundUsage()
 
-        // set wake lock to keep CPU awake
-        //acquireWakeLock()
-
-
-
-        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-
-        val repo = MainRepository(activityManager, this)
+        val repo = MainRepository(this)
 
         stressfactorLauncher = registerForActivityResult(SelfReportContract()) {
             Toast.makeText(applicationContext, it, Toast.LENGTH_SHORT).show()
@@ -87,7 +77,8 @@ class MainActivity : ComponentActivity() {
                 MonitoringApp(
                     running = runningState,
                     onStart = viewModel::startService,
-                    onStop = viewModel::stopService)
+                    onStop = viewModel::stopService,
+                    {stressfactorLauncher.launch()})
             }
         }
     }
@@ -97,72 +88,6 @@ class MainActivity : ComponentActivity() {
         // Unregister the receiver to prevent memory leaks
         unregisterReceiver(receiver)
     }
-
-    /**
-     * [MonitoringAppPreview] is used to preview [MonitoringApp] with mutable states.
-     * It shows the state changes on the UI caused by "Start" and "Stop" buttons.
-     */
-    @Preview(showBackground = true)
-    @Composable
-    fun MonitoringAppPreview() {
-        // Initialize running state to false
-        val running = remember { mutableStateOf(false) }
-
-        MonitoringApp(true, {}, {})
-    }
-
-    /**
-     * Composable function [MonitoringApp] creates UI consisting of two buttons and a TextField.
-     * It uses the passed [running] mutable state to start and stop services in actual application,
-     * and to reflect the state change in TextView in the preview.
-     *
-     * @param running mutable state to control the start and stop of services
-     *
-     */
-    @Composable
-    fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            TextFieldWithConditionalText(enabled = running)
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = {
-                onStart()
-
-            }) {
-                Text("Start", modifier = Modifier.padding(5.dp))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(modifier = Modifier.padding(horizontal = 16.dp), onClick = {
-                onStop()
-            }) {
-                Text("Stop", modifier = Modifier.padding(5.dp))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(modifier = Modifier.padding(horizontal = 16.dp).width(100.dp), onClick = {
-                Log.d("MainActivity", "MonitoringApp: Self Report clicked")
-                // startActivityForResult(Intent("test"), MainActivity)
-                stressfactorLauncher.launch()
-
-            }) {
-                Text("Self Report", modifier = Modifier.padding(5.dp))
-            }
-        }
-    }
-
-    @Composable
-    fun TextFieldWithConditionalText(enabled: Boolean) {
-
-        val textB = when (enabled) {
-            true -> "Enabled"
-            false -> "Disabled"
-        }
-
-        Text(text = textB)
-    }
-
 
     private fun acquireWakeLock() {
         //This code holds the CPU
@@ -207,3 +132,71 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Standard å ha composable utenfor activity
+
+/**
+ * [MonitoringAppPreview] is used to preview [MonitoringApp] with mutable states.
+ * It shows the state changes on the UI caused by "Start" and "Stop" buttons.
+ */
+@Preview(showBackground = true, showSystemUi = true, device = "id:wearos_large_round")
+@Composable
+fun MonitoringAppPreview() {
+    MonitoringApp(true, {}, {}, {})
+}
+
+/**
+ * Composable function [MonitoringApp] creates UI consisting of two buttons and a TextField.
+ * It uses the passed [running] mutable state to start and stop services in actual application,
+ * and to reflect the state change in TextView in the preview.
+ *
+ * @param running mutable state to control the start and stop of services
+ *
+ */
+@Composable
+fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit, startSelfReport: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Switch(
+            colors = SwitchDefaults.colors(
+            checkedThumbColor = Color.Red,
+            checkedTrackColor = Color.Gray,
+            uncheckedThumbColor = Color.LightGray,
+            uncheckedTrackColor = Color.Gray
+            ),
+            modifier = Modifier.scale(2.5f),
+            checked = running,
+            onCheckedChange = {
+                if (it) onStart()
+                else onStop()
+            })
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .width(100.dp), onClick = {
+            Log.d("MainActivity", "MonitoringApp: Self Report clicked")
+            // startActivityForResult(Intent("test"), MainActivity)
+            //stressfactorLauncher.launch()
+            startSelfReport()
+
+        }
+        ) {
+            Text("Self Report", modifier = Modifier.padding(5.dp))
+        }
+    }
+}
+
+@Composable
+fun TextFieldWithConditionalText(enabled: Boolean) {
+
+    val textB = when (enabled) {
+        true -> "Enabled"
+        false -> "Disabled"
+    }
+
+    Text(text = textB)
+}

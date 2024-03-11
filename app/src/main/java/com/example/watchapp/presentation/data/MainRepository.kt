@@ -2,28 +2,25 @@ package com.example.watchapp.presentation.data
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.example.watchapp.BuildConfig
+import androidx.activity.ComponentActivity
 import com.example.watchapp.presentation.service.HeartRateService
 import com.example.watchapp.presentation.utils.Actions
+import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.google.android.gms.location.ActivityRecognition
-import com.google.android.gms.location.ActivityTransition
-import com.google.android.gms.location.ActivityTransitionRequest
-import com.google.android.gms.location.DetectedActivity
 
 /**
  * MainRepository class responsible for managing services and interacting with the Android system.
  *
- * @property activityManager The [ActivityManager] instance used for managing activities and services.
  * @property applicationContext The [Context] used to access application-specific resources and components.
  */
 class MainRepository(
-    private val activityManager: ActivityManager,
-    private val applicationContext: Context
+    private val applicationContext: Context,
 ) {
+
+    private val client = ActivityRecognition.getClient(applicationContext)
 
 
     /**
@@ -33,6 +30,7 @@ class MainRepository(
      * @return `true` if the service is running, `false` otherwise.
      */
     fun isServiceRunning(serviceName: String): Boolean {
+        val activityManager = applicationContext.getSystemService(ComponentActivity.ACTIVITY_SERVICE) as ActivityManager
         val runningServices: List<ActivityManager.RunningServiceInfo> =
             activityManager.getRunningServices(Int.MAX_VALUE) // this is deprecated, might have to use sharedPreferences
 
@@ -50,96 +48,49 @@ class MainRepository(
      * Starts the HeartRateService.
      * This method sends a start command to the HeartRateService using an Intent.
      */
+    @SuppressLint("MissingPermission")
     fun startService() {
+        if (isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")) return
+
         Intent(applicationContext, HeartRateService::class.java).also {
             it.action = Actions.START.toString()
             applicationContext.startService(it)
         }
         //registerActivityTransition()
+        client
+            .requestActivityTransitionUpdates(
+                ActivityTransitionUtil.getActivityTransitionRequest(),
+                ActivityTransitionUtil.createPendingIntent(applicationContext)
+            )
+            .addOnSuccessListener {
+                Log.d("MainRepo", "requestActivityUpdates: Success - Request Updated")
+            }
+            .addOnFailureListener {
+                Log.d("MainRepo", "requestActivityUpdates: Failure - Request Updated")
+            }
+
     }
 
     /**
      * Stops the HeartRateService.
      * This method sends a stop command to the HeartRateService using an Intent.
      */
+    @SuppressLint("MissingPermission")
     fun stopService() {
+        if (!isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")) return
+
         Intent(applicationContext, HeartRateService::class.java).also {
             it.action = Actions.STOP.toString()
             applicationContext.startService(it)
         }
-    }
 
-    /**
-     * https://heartbeat.comet.ml/detect-users-activity-in-android-using-activity-transition-api-f718c844efb2
-     */
-    @SuppressLint("MissingPermission")
-    private fun registerActivityTransition() {
-        val transitions = getTransitionsList()
-        val request = ActivityTransitionRequest(transitions)
-        val intent = Intent(BuildConfig.APPLICATION_ID + ".DetectedActivityReceiver")
-        val pendingIntent = PendingIntent.getBroadcast(
-            applicationContext, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE
-        );
+        client.removeActivityTransitionUpdates(ActivityTransitionUtil.createPendingIntent(applicationContext))
+            .addOnSuccessListener {
+                Log.d("MainRepo", "removeActivityUpdates: Successful unregistered")
+            }
+            .addOnFailureListener {
+                Log.d("MainRepo", "removeActivityUpdates: Unsuccessful unregistered")
+            }
 
-        val activityRecognitionClient = ActivityRecognition.getClient(applicationContext)
-        val task = activityRecognitionClient.requestActivityTransitionUpdates(request, pendingIntent)
-
-        task.addOnSuccessListener {
-            Log.d("ActivityRecognition", "Transitions Api registered with success")
-            applicationContext.sendBroadcast(intent)
-        }
-
-        task.addOnFailureListener { e: Exception ->
-            Log.d(
-                "ActivityRecognition",
-                "Transitions Api could NOT be registered ${e.localizedMessage}"
-            )
-        }
-    }
-
-    private fun getTransitionsList(): MutableList<ActivityTransition> {
-        val transitions = mutableListOf<ActivityTransition>()
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.RUNNING)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.RUNNING)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.WALKING)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.WALKING)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.ON_BICYCLE)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.STILL)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.STILL)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-            .build()
-
-        transitions += ActivityTransition.Builder()
-            .setActivityType(DetectedActivity.ON_BICYCLE)
-            .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-            .build()
-
-        return transitions
     }
 }
