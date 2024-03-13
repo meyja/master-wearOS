@@ -23,22 +23,18 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class HeartRateStreamManager(context: Context) {
+class StressStreamManager(val context: Context, val scope: CoroutineScope) {
 
-    val TAG = "HeartRateStreamManager"
-    val WINDOW_MILLI = 9_000 // 9 sec only for easy debug
+    private val TAG = "StressStreamManager"
 
-    val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
+    private val WINDOW_MILLI = 25_000 // 9 sec only for easy debug
+    private var windowStart: Long = 0
 
-    var heartrateData = ArrayList<DataPoint>()
-    var windowStart: Long = 0
+    private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
+    private var lastLocation: Pair<String, String>? = null
 
-    var lastLocation: Pair<String, String>? = null
-
-
-    private val scope = CoroutineScope(SupervisorJob())
-
-    val c = context
+    private var heartrateData = ArrayList<DataPoint>()
+    private var decibelData = ArrayList<Double>()
 
     private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private var locationClient: LocationClient
@@ -90,7 +86,8 @@ class HeartRateStreamManager(context: Context) {
 
             // Reset window
             windowStart = timestamp
-            heartrateData = ArrayList<DataPoint>()
+            heartrateData = ArrayList()
+            decibelData = ArrayList()
         }
 
         heartrateData.add(dataPoint)
@@ -98,34 +95,40 @@ class HeartRateStreamManager(context: Context) {
 
     }
 
+    fun addDecibelDataPoint(dB: Double) {
+        Log.d(TAG, "addDecibelDataPoint: $dB")
+
+        if (dB == 0.0) return
+
+        decibelData.add(dB)
+    }
+
     /**
      * Checks if data says someone is stressed, in a separate thread
      */
     private fun doAnalysis() {
         val heartRateDataCopy = heartrateData.toList() // Need to be separate copy if analysis takes awhile
+        val decibelDataCopy = decibelData.toList()
+
         scope.launch {// Separate thread
             var sum: Float = 0.0F
             for (e in heartRateDataCopy) {
                 sum += e.hr
                 //Log.d(TAG, e.hr.toString())
             }
-            /*var loc = getCurrentLocationBlocking(fusedLocationProviderClient)
-            Log.d(TAG, "doAnalysis: loc:${loc.toString()}")
-            if (loc != null) {
-                lastLocation = loc
-            }else{
-                loc = lastLocation
-            }*/
+
+            var sumDB = 0.0
+            for( e in decibelDataCopy) {
+                sumDB += e
+            }
+
             val avg = sum / heartRateDataCopy.size
             val severity = ((avg%10)+1).toString()
             val timestamp = System.currentTimeMillis()
 
-            //if (loc == null) return@launch
             val loc = lastLocation ?: return@launch
 
-            val dB = getDecibel(c)
-
-            Log.d(TAG, "doAnalysis: ${(avg%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: $dB")
+            Log.d(TAG, "doAnalysis: ${(avg%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${sumDB}")
 
             startWorker(severity, loc.first, loc.second, timestamp.toString())
             }
@@ -155,7 +158,7 @@ class HeartRateStreamManager(context: Context) {
             .setConstraints(builder.build())
             .build()
 
-        WorkManager.getInstance(c).enqueue(oneTimeWork)
+        WorkManager.getInstance(context).enqueue(oneTimeWork)
 
     }
 

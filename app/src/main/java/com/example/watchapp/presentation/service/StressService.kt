@@ -14,12 +14,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
 import com.example.watchapp.presentation.utils.Actions
+import com.example.watchapp.presentation.utils.audioRecordingLoop
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import java.time.LocalDate
 import java.util.UUID
 
-class HeartRateService() : Service(), SensorEventListener {
+class StressService() : Service(), SensorEventListener {
     val TAG = "HeartRateService"
     private lateinit var sensorManager: SensorManager
     private var hrSensor: Sensor? = null
@@ -28,7 +30,7 @@ class HeartRateService() : Service(), SensorEventListener {
 
     private val scope = CoroutineScope(SupervisorJob())
 
-    private lateinit var hrManager: HeartRateStreamManager
+    private lateinit var stressStreamManager: StressStreamManager
 
     //lateinit var notificationManager: NotificationManager
 
@@ -60,49 +62,14 @@ class HeartRateService() : Service(), SensorEventListener {
 
         //notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        hrManager = HeartRateStreamManager(this)
-        hrManager.setSessionId(getSessionId())
-
-
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_MICROPHONE)
-
-        /*
-        scope.launch {
-            Log.d(TAG, "Starting coroutine for heartRateMeasureFlow.")
-            repo.heartRateMeasureFlow()
-                .collect {
-                    when (it) {
-                        is MeasureMessage.MeasureData -> {
-                            val hr = it.data.last().value
-                            Log.d(TAG, "Collected new heart rate measurement: $hr.")
-                            val updatedNotification = notification.setContentText("HR: $hr")
-                            notificationManager.notify(1, updatedNotification.build())
-                            Log.d(TAG, "Notification updated with new heart rate.")
-                        }
-
-                        is MeasureMessage.MeasureAvailability -> {
-                            Log.d(TAG, "MeasureAvailability state change.")
-                        }
-
-                    }
-                }
-        }
-
-        scope.launch {
-            Log.d(TAG, "Starting heartbeat logger coroutine.")
-            (0..1000).forEach {
-                Log.d(TAG, "Heartbeat log: $it.")
-                delay(5000)
-            }
-        }*/
     }
 
     private fun stop() {
         stopForeground(STOP_FOREGROUND_DETACH)
-        //scope.cancel()
-        //notificationManager.cancel(1) // removes notification when service is destroyed
         sensorManager.unregisterListener(this)
-        hrManager.close()
+        stressStreamManager.close()
+        scope.cancel()
         stopSelf()
     }
 
@@ -116,11 +83,26 @@ class HeartRateService() : Service(), SensorEventListener {
 
                     if(!checkHeartRateSensorFound() && !checkAccelerometerSensorFound()) return; // If no HR sensor, do not start service
 
+                    // Setup stream manager
+                    stressStreamManager = StressStreamManager(this, scope)
+                    stressStreamManager.setSessionId(getSessionId())
+
+                    // Starting sensors
                     hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
                     accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
                     registerHrSensorListener()
-                    //registerAccelerometerSensorListener()
+
+                    // Setup audio
+                    audioRecordingLoop(
+                        this,
+                        500L,
+                        10_000L,
+                        scope,
+                        stressStreamManager::addDecibelDataPoint
+                    )
+
+
                     start()
                     Log.d(
                         TAG,
@@ -211,7 +193,7 @@ class HeartRateService() : Service(), SensorEventListener {
         else {
             val hr = event.values[0]
             Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
-            hrManager.addHrDatapoint(hr)
+            stressStreamManager.addHrDatapoint(hr)
         }
     }
 

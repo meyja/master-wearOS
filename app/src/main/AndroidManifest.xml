@@ -59,7 +59,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".presentation.selfreport.SelfReportActivity" />
-        <service android:name=".presentation.service.HeartRateService"
+        <service android:name=".presentation.service.StressService"
             android:foregroundServiceType="location|dataSync|microphone"/>
 
         <receiver android:name=".presentation.DetectedActivityReceiver"

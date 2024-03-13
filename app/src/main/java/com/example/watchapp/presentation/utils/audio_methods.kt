@@ -3,11 +3,17 @@ package com.example.watchapp.presentation.utils
 import android.content.Context
 import android.media.MediaRecorder
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.io.File
 
-fun getDecibel(c: Context): Double {
+fun getDecibel(c: Context, length: Long): Double {
     // Initialize variables
-    val TIME_AUDIO: Long = 500 // Length of recording in ms
+    val TIME_AUDIO: Long = length// Length of recording in ms
     val recorder = MediaRecorder(c)
     val audioFile = createTempAudioFile(c) // Create a temporary file to store the recording
 
@@ -55,3 +61,16 @@ private fun createTempAudioFile(c: Context): File {
     }
     return File(tempDir, "recording_${System.currentTimeMillis()}.aac")
 }
+
+fun audioRecordingLoop(c: Context, recordingLength: Long, recordingPauseLength: Long, scope: CoroutineScope, callback: (Double) -> Unit) {
+    scope.launch {
+        val recorder = MediaRecorder(c)
+        val audioFile = createTempAudioFile(c) // Create a temporary file to store the recording
+
+        while (this.isActive) {
+            callback(getDecibel(c, recordingLength))
+            delay(recordingPauseLength)
+        }
+    }
+}
+

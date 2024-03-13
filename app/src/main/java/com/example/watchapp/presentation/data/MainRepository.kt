@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.ComponentActivity
-import com.example.watchapp.presentation.service.HeartRateService
+import com.example.watchapp.presentation.service.StressService
 import com.example.watchapp.presentation.utils.Actions
 import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.google.android.gms.location.ActivityRecognition
@@ -21,6 +21,8 @@ class MainRepository(
 ) {
 
     private val client = ActivityRecognition.getClient(applicationContext)
+
+    private var isRunning = false
 
 
     /**
@@ -50,13 +52,12 @@ class MainRepository(
      */
     @SuppressLint("MissingPermission")
     fun startService() {
-        if (isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")) return
+        if (isServiceRunning("com.example.watchapp.presentation.service.StressService")) return
 
-        Intent(applicationContext, HeartRateService::class.java).also {
+        Intent(applicationContext, StressService::class.java).also {
             it.action = Actions.START.toString()
             applicationContext.startService(it)
         }
-        //registerActivityTransition()
         client
             .requestActivityTransitionUpdates(
                 ActivityTransitionUtil.getActivityTransitionRequest(),
@@ -64,9 +65,11 @@ class MainRepository(
             )
             .addOnSuccessListener {
                 Log.d("MainRepo", "requestActivityUpdates: Success - Request Updated")
+                isRunning = true
             }
             .addOnFailureListener {
                 Log.d("MainRepo", "requestActivityUpdates: Failure - Request Updated")
+                isRunning = false
             }
 
     }
@@ -79,7 +82,7 @@ class MainRepository(
     fun stopService() {
         if (!isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")) return
 
-        Intent(applicationContext, HeartRateService::class.java).also {
+        Intent(applicationContext, StressService::class.java).also {
             it.action = Actions.STOP.toString()
             applicationContext.startService(it)
         }
@@ -87,9 +90,11 @@ class MainRepository(
         client.removeActivityTransitionUpdates(ActivityTransitionUtil.createPendingIntent(applicationContext))
             .addOnSuccessListener {
                 Log.d("MainRepo", "removeActivityUpdates: Successful unregistered")
+                isRunning = false
             }
             .addOnFailureListener {
                 Log.d("MainRepo", "removeActivityUpdates: Unsuccessful unregistered")
+                isRunning = true
             }
 
     }

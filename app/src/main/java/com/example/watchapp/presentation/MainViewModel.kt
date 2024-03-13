@@ -46,7 +46,7 @@ class MainViewModel(private val repo: MainRepository) : ViewModel() {
      */
     private fun checkIfServiceIsRunning() {
         _isServiceRunning.value =
-            repo.isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")
+            repo.isServiceRunning("com.example.watchapp.presentation.service.StressService")
     }
 
     /**
