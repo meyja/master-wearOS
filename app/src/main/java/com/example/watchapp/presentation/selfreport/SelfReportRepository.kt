@@ -16,6 +16,7 @@ import java.util.UUID
 class SelfReportRepository() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var workManager: WorkManager
+    private var dB: Double = 0.0
     fun report(callback: (Pair<String, String>?) -> Unit) {
         getCurrentLocationNonBlocking(fusedLocationProviderClient, callback)
     }
@@ -29,6 +30,7 @@ class SelfReportRepository() {
         data.putString("dataPoint", dataPoint)
         data.putString("timestamp", timestamp)
         data.putString("sessionId", UUID.randomUUID().toString())
+        data.putString("dB", dB.toString())
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
@@ -48,5 +50,9 @@ class SelfReportRepository() {
 
     fun setWorkManager(workManager: WorkManager) {
         this.workManager = workManager
+    }
+
+    fun setDB(dB: Double) {
+        this.dB = dB
     }
 }

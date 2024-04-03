@@ -47,9 +47,16 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
             return
         }
 
+
+
         repo.startWorker(_severity.value.toString(), loc.first, loc.second)
 
         returnMessage.value = 1
+    }
+
+    fun getDB(): Double {
+
+        return 0.0
     }
 
     fun setLocationProvider(fusedLocationProviderClient: FusedLocationProviderClient) {
@@ -58,6 +65,10 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
 
     fun setWorkManager(workManager: WorkManager) {
         repo.setWorkManager(workManager)
+    }
+
+    fun setDB(dB: Double) {
+        repo.setDB(dB)
     }
 
 

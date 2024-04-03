@@ -8,15 +8,12 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.watchapp.presentation.data.DataPoint
 import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.location.DefaultLocationClient
 import com.example.watchapp.presentation.location.LocationClient
-import com.example.watchapp.presentation.utils.getDecibel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -33,7 +30,7 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
     private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
     private var lastLocation: Pair<String, String>? = null
 
-    private var heartrateData = ArrayList<DataPoint>()
+    private var heartrateData = ArrayList<Float>()
     private var decibelData = ArrayList<Double>()
 
     private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
@@ -78,7 +75,6 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
         if (hr == 0.0f) return // Throws 0 HR
 
         val timestamp = System.currentTimeMillis()
-        val dataPoint = DataPoint(hr, timestamp)
 
         if (windowStart.equals(0.toLong())) windowStart = timestamp
         else if (timestamp - windowStart > WINDOW_MILLI) { // Outside of window
@@ -90,7 +86,7 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
             decibelData = ArrayList()
         }
 
-        heartrateData.add(dataPoint)
+        heartrateData.add(hr)
 
 
     }
@@ -111,26 +107,20 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
         val decibelDataCopy = decibelData.toList()
 
         scope.launch {// Separate thread
-            var sum: Float = 0.0F
-            for (e in heartRateDataCopy) {
-                sum += e.hr
-                //Log.d(TAG, e.hr.toString())
-            }
+            val sumHr: Float = heartRateDataCopy.sum()
+            val avgHr = heartRateDataCopy.average()
 
-            var sumDB = 0.0
-            for( e in decibelDataCopy) {
-                sumDB += e
-            }
+            val sumDB = decibelDataCopy.sum()
+            val avgDB = decibelDataCopy.average()
 
-            val avg = sum / heartRateDataCopy.size
-            val severity = ((avg%10)+1).toString()
             val timestamp = System.currentTimeMillis()
 
             val loc = lastLocation ?: return@launch
+            if (avgHr < 120) return@launch
 
-            Log.d(TAG, "doAnalysis: ${(avg%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${sumDB}")
+            Log.d(TAG, "doAnalysis: ${(avgHr%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${avgDB}")
 
-            startWorker(severity, loc.first, loc.second, timestamp.toString())
+            startWorker(avgHr.toString(), loc.first, loc.second, timestamp.toString(), avgDB.toString())
             }
 
     }
@@ -140,7 +130,7 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
      * Starts a worker to do a network request, sends lat, lon, and avg.
      * Network must be available for worker to start
      */
-    private fun startWorker(dataPoint: String, lat: String, lon: String, timestamp: String) {
+    private fun startWorker(dataPoint: String, lat: String, lon: String, timestamp: String, dB: String) {
         // Putting data for worker to retrieve
         val data: Data.Builder = Data.Builder()
         data.putString("lat", lat)
@@ -148,6 +138,7 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
         data.putString("dataPoint", dataPoint)
         data.putString("timestamp", timestamp)
         data.putString("sessionId", sessionId.toString())
+        data.putString("dB", dB)
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)

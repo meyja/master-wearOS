@@ -49,6 +49,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.theme.WatchAppTheme
+import com.example.watchapp.presentation.utils.getDecibel
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -72,6 +73,11 @@ class SelfReportActivity: ComponentActivity() {
 
         val repo = SelfReportRepository()
 
+        val dB = getDecibel(this, 500) // takes noise measurements when the activity is started
+        // might need to do this on separate thread, now pauses ui thread for 500ms
+
+        Log.d(TAG, "dB: $dB")
+
         setContent {
             // Preparing ViewModel and repository
             val viewModel = viewModel<SelfReportViewModel>(factory = SelfReportViewModel.SelfReportViewModelFactory(repo))
@@ -79,6 +85,7 @@ class SelfReportActivity: ComponentActivity() {
             // Primitive Dependency Injection - to lazy to use Dagger
             viewModel.setLocationProvider(fusedLocationProviderClient)
             viewModel.setWorkManager(workManager)
+            viewModel.setDB(dB)
 
             val severity by viewModel.severity.collectAsStateWithLifecycle()
 
