@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
 import com.example.watchapp.presentation.utils.Actions
+import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.example.watchapp.presentation.utils.audioRecordingLoop
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -27,10 +28,11 @@ class StressService() : Service(), SensorEventListener {
     private var hrSensor: Sensor? = null
     private var accelerometerSensor: Sensor? = null
     private var isRunning = false
+    private var isPaused = false
 
-    private val scope = CoroutineScope(SupervisorJob())
+    private lateinit var scope: CoroutineScope
 
-    private lateinit var stressStreamManager: StressStreamManager
+    private var stressStreamManager: StressStreamManager? = null
 
     //lateinit var notificationManager: NotificationManager
 
@@ -65,52 +67,63 @@ class StressService() : Service(), SensorEventListener {
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_MICROPHONE)
     }
 
+    private fun pause() {
+        sensorManager.unregisterListener(this)
+        stressStreamManager?.close()
+        scope.cancel()
+    }
+
+    private fun unpause() {
+        setup()
+    }
+
     private fun stop() {
         stopForeground(STOP_FOREGROUND_DETACH)
-        sensorManager.unregisterListener(this)
-        stressStreamManager.close()
-        scope.cancel()
+        pause()
         stopSelf()
+    }
+
+    private fun setup() {
+        scope = CoroutineScope(SupervisorJob())
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        if(!checkHeartRateSensorFound() && !checkAccelerometerSensorFound()) return; // If no HR sensor, do not start service
+
+        // Setup stream manager
+        stressStreamManager = StressStreamManager(this, scope)
+        stressStreamManager!!.setSessionId(getSessionId())
+
+        // Starting sensors
+        hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
+        accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        registerHrSensorListener()
+
+        // Setup audio
+        audioRecordingLoop(
+            this,
+            500L,
+            10_000L,
+            scope,
+            stressStreamManager!!::addDecibelDataPoint
+        )
     }
 
     private fun handleIntentAction(intent: Intent?) {
         when (intent?.action) {
             Actions.START.toString() -> {
-                if (!isRunning) {
-                    isRunning = true
-
-                    sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-                    if(!checkHeartRateSensorFound() && !checkAccelerometerSensorFound()) return; // If no HR sensor, do not start service
-
-                    // Setup stream manager
-                    stressStreamManager = StressStreamManager(this, scope)
-                    stressStreamManager.setSessionId(getSessionId())
-
-                    // Starting sensors
-                    hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-                    accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
-                    registerHrSensorListener()
-
-                    // Setup audio
-                    audioRecordingLoop(
-                        this,
-                        500L,
-                        10_000L,
-                        scope,
-                        stressStreamManager::addDecibelDataPoint
-                    )
-
-
-                    start()
-                    Log.d(
-                        TAG,
-                        "START action received and service was not running. Service started."
-                    )
-                } else {
+                if (isRunning) {
                     Log.d(TAG, "START action received but service was already running.")
+                    return
                 }
+
+                isRunning = true
+                setup()
+                start()
+                Log.d(
+                    TAG,
+                    "START action received and service was not running. Service started."
+                )
             }
 
             Actions.STOP.toString() -> {
@@ -119,7 +132,21 @@ class StressService() : Service(), SensorEventListener {
             }
             
             Actions.TRANSITION.toString() -> {
+                val transition = intent.getStringExtra("transitionType")
+
                 Log.d(TAG, "handleIntentAction: STILL ${intent.getStringExtra("transitionType")}")
+
+                if (transition == "EXIT") { // EXIT
+                    if (isPaused) return // Already paused - should not happen
+                    isPaused = true
+                    pause()
+                    return
+                }
+
+                // ENTER
+                if(!isPaused) return // Not paused but entering still mode - return
+                isPaused = false
+                unpause()
             }
         }
     }
@@ -177,24 +204,11 @@ class StressService() : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        //Log.d(TAG, "onSensorChanged: ${event.toString()}")
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
 
-            /**
-             * All values are in SI units (m/s^2)
-             * values[0]: Acceleration minus Gx on the x-axis
-             * values[1]: Acceleration minus Gy on the y-axis
-             * values[2]: Acceleration minus Gz on the z-axis
-             *
-             * https://developer.android.com/reference/android/hardware/SensorEvent
-             */
-            Log.d(TAG, "onSensorChanged_TYPE_ACCELEROMETER: ${event.values[0]} ${event.values[1]} ${event.values[2]}")
-        }
-        else {
-            val hr = event.values[0]
-            Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
-            stressStreamManager.addHrDatapoint(hr)
-        }
+        val hr = event.values[0]
+        Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
+        stressStreamManager!!.addHrDatapoint(hr)
+
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {

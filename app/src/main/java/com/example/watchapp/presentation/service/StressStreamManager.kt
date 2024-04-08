@@ -24,7 +24,7 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
 
     private val TAG = "StressStreamManager"
 
-    private val WINDOW_MILLI = 25_000 // 9 sec only for easy debug
+    private val WINDOW_MILLI = 25_000
     private var windowStart: Long = 0
 
     private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
@@ -116,12 +116,12 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
             val timestamp = System.currentTimeMillis()
 
             val loc = lastLocation ?: return@launch
-            if (avgHr < 120) return@launch
+            if (avgHr > 120) return@launch
 
-            Log.d(TAG, "doAnalysis: ${(avgHr%10)+1}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${avgDB}")
+            Log.d(TAG, "doAnalysis: ${avgHr.toString()}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${avgDB}")
 
-            startWorker(avgHr.toString(), loc.first, loc.second, timestamp.toString(), avgDB.toString())
-            }
+            //startWorker(avgHr.toString(), loc.first, loc.second, timestamp.toString(), avgDB.toString())
+        }
 
     }
 
