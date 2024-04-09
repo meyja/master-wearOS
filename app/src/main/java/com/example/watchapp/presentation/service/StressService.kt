@@ -13,12 +13,16 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
+import com.example.watchapp.presentation.location.DefaultLocationClient
 import com.example.watchapp.presentation.utils.Actions
 import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.example.watchapp.presentation.utils.audioRecordingLoop
+import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.time.LocalDate
 import java.util.UUID
 
@@ -33,6 +37,9 @@ class StressService() : Service(), SensorEventListener {
     private lateinit var scope: CoroutineScope
 
     private var stressStreamManager: StressStreamManager? = null
+
+    private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
+
 
     //lateinit var notificationManager: NotificationManager
 
@@ -49,6 +56,48 @@ class StressService() : Service(), SensorEventListener {
         handleIntentAction(intent)
 
         return START_STICKY
+    }
+
+    private fun handleIntentAction(intent: Intent?) {
+        when (intent?.action) {
+            Actions.START.toString() -> {
+                if (isRunning) {
+                    Log.d(TAG, "START action received but service was already running.")
+                    return
+                }
+
+                isRunning = true
+                setup()
+                start()
+                Log.d(
+                    TAG,
+                    "START action received and service was not running. Service started."
+                )
+            }
+
+            Actions.STOP.toString() -> {
+                if(isRunning) stop() // Error if stop() is called but no service is running
+                Log.d(TAG, "STOP action received. Service stopped.")
+            }
+
+            Actions.TRANSITION.toString() -> {
+                val transition = intent.getStringExtra("transitionType")
+
+                Log.d(TAG, "handleIntentAction: STILL ${intent.getStringExtra("transitionType")}")
+
+                if (transition == "EXIT") { // EXIT
+                    if (isPaused) return // Already paused - should not happen
+                    isPaused = true
+                    pause()
+                    return
+                }
+
+                // ENTER
+                if(!isPaused) return // Not paused but entering still mode - return
+                isPaused = false
+                unpause()
+            }
+        }
     }
 
     private fun start() {
@@ -69,7 +118,6 @@ class StressService() : Service(), SensorEventListener {
 
     private fun pause() {
         sensorManager.unregisterListener(this)
-        stressStreamManager?.close()
         scope.cancel()
     }
 
@@ -107,50 +155,27 @@ class StressService() : Service(), SensorEventListener {
             scope,
             stressStreamManager!!::addDecibelDataPoint
         )
+
+        setupLocation()
     }
 
-    private fun handleIntentAction(intent: Intent?) {
-        when (intent?.action) {
-            Actions.START.toString() -> {
-                if (isRunning) {
-                    Log.d(TAG, "START action received but service was already running.")
-                    return
-                }
+    private fun setupLocation() {
+        val locationClient = DefaultLocationClient(
+            this,
+            LocationServices.getFusedLocationProviderClient(this)
+        )
 
-                isRunning = true
-                setup()
-                start()
-                Log.d(
-                    TAG,
-                    "START action received and service was not running. Service started."
-                )
+        locationClient
+            .getLocationUpdates(LOCATIONINTERVAL_MILLI)
+            .onEach { location ->
+                val lat = location.latitude.toString()
+                val lon = location.longitude.toString()
+                stressStreamManager!!.setLocation(Pair(lat, lon))
+                Log.d(TAG, "locationUpdate: $lat, $lon")
+
             }
-
-            Actions.STOP.toString() -> {
-                if(isRunning) stop() // Error if stop() is called but no service is running
-                Log.d(TAG, "STOP action received. Service stopped.")
-            }
-            
-            Actions.TRANSITION.toString() -> {
-                val transition = intent.getStringExtra("transitionType")
-
-                Log.d(TAG, "handleIntentAction: STILL ${intent.getStringExtra("transitionType")}")
-
-                if (transition == "EXIT") { // EXIT
-                    if (isPaused) return // Already paused - should not happen
-                    isPaused = true
-                    pause()
-                    return
-                }
-
-                // ENTER
-                if(!isPaused) return // Not paused but entering still mode - return
-                isPaused = false
-                unpause()
-            }
-        }
+            .launchIn(scope)
     }
-
 
     private fun registerHrSensorListener() {
         hrSensor?.also { hr ->

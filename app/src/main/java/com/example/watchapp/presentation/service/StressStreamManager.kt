@@ -27,18 +27,14 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
     private val WINDOW_MILLI = 25_000
     private var windowStart: Long = 0
 
-    private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
     private var lastLocation: Pair<String, String>? = null
 
     private var heartrateData = ArrayList<Float>()
     private var decibelData = ArrayList<Double>()
 
-    private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    private var locationClient: LocationClient
-
     private lateinit var sessionId: UUID
 
-    init {
+    /*init {
         locationClient = DefaultLocationClient(
             context,
             fusedLocationProviderClient
@@ -54,7 +50,7 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
 
             }
             .launchIn(scope)
-    }
+    }*/
 
 
     //val c = context
@@ -158,8 +154,8 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
         this.sessionId = sessionId
     }
 
-    fun close() {
-        scope.cancel()
-    }
+    fun setLocation(loc: Pair<String, String>) {
+        lastLocation = loc
 
+    }
 }
