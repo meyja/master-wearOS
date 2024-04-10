@@ -1,6 +1,8 @@
 package com.example.watchapp.presentation.selfreport
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
@@ -11,12 +13,14 @@ import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import java.time.LocalDate
 import java.util.UUID
 
 class SelfReportRepository() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var workManager: WorkManager
     private var dB: Double = 0.0
+    private lateinit var uuid: UUID
     fun report(callback: (Pair<String, String>?) -> Unit) {
         getCurrentLocationNonBlocking(fusedLocationProviderClient, callback)
     }
@@ -29,7 +33,7 @@ class SelfReportRepository() {
         data.putString("lon", lon)
         data.putString("dataPoint", dataPoint)
         data.putString("timestamp", timestamp)
-        data.putString("sessionId", UUID.randomUUID().toString())
+        data.putString("sessionId", uuid.toString())
         data.putString("dB", dB.toString())
 
         // Creating Worker
@@ -54,5 +58,10 @@ class SelfReportRepository() {
 
     fun setDB(dB: Double) {
         this.dB = dB
+    }
+
+    fun setUUID(uuid: UUID) {
+        Log.d("REPO", "setUUID: $uuid")
+        this.uuid = uuid
     }
 }

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationRequest
@@ -55,6 +56,8 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
+import java.util.UUID
 
 
 class SelfReportActivity: ComponentActivity() {
@@ -86,6 +89,7 @@ class SelfReportActivity: ComponentActivity() {
             viewModel.setLocationProvider(fusedLocationProviderClient)
             viewModel.setWorkManager(workManager)
             viewModel.setDB(dB)
+            viewModel.setUUID(getSessionId())
 
             val severity by viewModel.severity.collectAsStateWithLifecycle()
 
@@ -114,6 +118,39 @@ class SelfReportActivity: ComponentActivity() {
             this,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun getSessionId(): UUID {
+        // Get existing sessionId and timestamp
+        val sharedPreferences = getSharedPreferences("stressMap", 0)
+
+        val id = sharedPreferences.getString("sessionId", null) ?: return createAndSaveUUID(sharedPreferences)
+        val timestamp = sharedPreferences.getString("idTimestamp", null) ?: return createAndSaveUUID(sharedPreferences)
+
+        // There was an existing id and timestamp in sharedPreferences
+        val today = LocalDate.now()
+        val todayString = "${today.dayOfYear}${today.month.value}${today.dayOfMonth}"
+
+        if(timestamp == todayString) return UUID.fromString(id) // Same date - return existing UUID
+
+        return createAndSaveUUID(sharedPreferences)
+    }
+
+    private fun createAndSaveUUID(sharedPreferences: SharedPreferences): UUID {
+        // There was an existing id and timestamp in sharedPreferences
+        val today = LocalDate.now()
+        val todayString = "${today.dayOfYear}${today.month.value}${today.dayOfMonth}"
+
+        // Create new UUID
+        val newId = UUID.randomUUID()
+
+        // Save to sharedPreferences
+        val editor = sharedPreferences.edit()
+        editor.putString("sessionId", newId.toString())
+        editor.putString("idTimestamp", todayString)
+        editor.apply()
+
+        return newId
     }
 
 }

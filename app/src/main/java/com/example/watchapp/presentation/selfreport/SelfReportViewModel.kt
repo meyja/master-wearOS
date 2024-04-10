@@ -13,6 +13,7 @@ import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.UUID
 
 class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
 
@@ -69,6 +70,10 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
 
     fun setDB(dB: Double) {
         repo.setDB(dB)
+    }
+
+    fun setUUID(uuid: UUID) {
+        repo.setUUID(uuid)
     }
 
 
