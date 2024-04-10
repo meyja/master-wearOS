@@ -53,6 +53,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
                 jsonObject.put("dataPoint", dataPoint!!)
                 jsonObject.put("timestamp", timestamp!!)
                 jsonObject.put("sessionId", id!!)
+                jsonObject.put("dB", dB!!)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
@@ -61,7 +62,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
             val body = jsonObject.toString().toRequestBody(mediaType)
 
             val request = okhttp3.Request.Builder()
-                .url("https://mongoapi-lr9d.onrender.com/stressdata")
+                .url("http://ok.mimic.uiocloud.no/stressdata")
                 .post(body)
                 .build()
 

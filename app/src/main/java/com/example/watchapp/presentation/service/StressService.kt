@@ -1,5 +1,6 @@
 package com.example.watchapp.presentation.service
 
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -38,7 +39,10 @@ class StressService() : Service(), SensorEventListener {
 
     private var stressStreamManager: StressStreamManager? = null
 
-    private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec because
+    private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec
+
+    private var amountOfZeroesInARow = 0
+    private val zeroLimit = 60 // 1 min
 
 
     //lateinit var notificationManager: NotificationManager
@@ -143,7 +147,7 @@ class StressService() : Service(), SensorEventListener {
 
         // Starting sensors
         hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-        accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        //accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         registerHrSensorListener()
 
@@ -190,7 +194,7 @@ class StressService() : Service(), SensorEventListener {
         }
     }
 
-    private fun registerAccelerometerSensorListener() {
+    /*private fun registerAccelerometerSensorListener() {
         accelerometerSensor?.also { acc ->
             sensorManager.registerListener(
                 this,
@@ -201,7 +205,7 @@ class StressService() : Service(), SensorEventListener {
         } ?: run {
             Log.d(TAG, "accelerometerSensor is null, sensor listener couldn't be registered.")
         }
-    }
+    }*/
 
     /**
      * https://developer.android.com/develop/sensors-and-location/location/transitions
@@ -229,11 +233,29 @@ class StressService() : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-
         val hr = event.values[0]
+
+        if(hr == 0.0f) {
+            amountOfZeroesInARow ++
+            if (amountOfZeroesInARow >= zeroLimit) {
+                inactiveStop()
+            }
+        }
         Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
         stressStreamManager!!.addHrDatapoint(hr)
 
+    }
+
+    private fun inactiveStop() {
+        val notification = NotificationCompat.Builder(this, "heartRate_channel")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("StressService turned off")
+            .setContentText("No heartrate register for a period of time, return to app to turn on")
+            .build()
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(1000, notification)
+
+        stop()
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
