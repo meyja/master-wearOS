@@ -11,6 +11,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 
+// makes recording and extracts decibel
 fun getDecibel(c: Context, length: Long): Double {
     // Initialize variables
     val TIME_AUDIO: Long = length// Length of recording in ms
@@ -54,6 +55,7 @@ fun getDecibel(c: Context, length: Long): Double {
 
 }
 
+// creates temporary file for the audio
 private fun createTempAudioFile(c: Context): File {
     val tempDir = File(c.cacheDir, "audio_recordings")
     if (!tempDir.exists()) {
@@ -62,6 +64,7 @@ private fun createTempAudioFile(c: Context): File {
     return File(tempDir, "recording_${System.currentTimeMillis()}.aac")
 }
 
+// Loop for recording audio, with callback for when recorded and wait between each loop
 fun audioRecordingLoop(c: Context, recordingLength: Long, recordingPauseLength: Long, scope: CoroutineScope, callback: (Double) -> Unit) {
     scope.launch {
         val recorder = MediaRecorder(c)

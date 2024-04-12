@@ -22,7 +22,7 @@ class MainRepository(
 
     private val client = ActivityRecognition.getClient(applicationContext)
 
-    private var isRunning = false
+    //private var isRunning = false
 
 
     /**
@@ -47,16 +47,28 @@ class MainRepository(
     }
 
     /**
+     * Checks if a service with the specified class name is currently running based on sharedprefrences.
+     *
+     * @return `true` if the service is running, `false` otherwise.
+     */
+    fun isServiceRunning(): Boolean {
+        val sharedPreferences = applicationContext.getSharedPreferences("stressMap", 0)
+        Log.d("REPO", "isServiceRunning: sharedPreferences.getBoolean(\"isRunning\", false)")
+        return sharedPreferences.getBoolean("isRunning", false)
+    }
+
+    /**
      * Starts the HeartRateService.
      * This method sends a start command to the HeartRateService using an Intent.
      */
     @SuppressLint("MissingPermission")
     fun startService() {
-        if (isServiceRunning("com.example.watchapp.presentation.service.StressService")) return
+        if (isServiceRunning()) return
 
         Intent(applicationContext, StressService::class.java).also {
             it.action = Actions.START.toString()
             applicationContext.startService(it)
+            applicationContext.getSharedPreferences("stressMap", 0).edit().putBoolean("isRunning", true).apply()
         }
         client
             .requestActivityTransitionUpdates(
@@ -65,11 +77,9 @@ class MainRepository(
             )
             .addOnSuccessListener {
                 Log.d("MainRepo", "requestActivityUpdates: Success - Request Updated")
-                isRunning = true
             }
             .addOnFailureListener {
                 Log.d("MainRepo", "requestActivityUpdates: Failure - Request Updated")
-                isRunning = false
             }
 
     }
@@ -80,21 +90,22 @@ class MainRepository(
      */
     @SuppressLint("MissingPermission")
     fun stopService() {
-        if (!isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")) return
+        Log.d("HeartRateService", "stopService1: ")
+        if (!isServiceRunning()) return
+        Log.d("HeartRateService", "stopService2: ")
 
         Intent(applicationContext, StressService::class.java).also {
             it.action = Actions.STOP.toString()
             applicationContext.startService(it)
+            applicationContext.getSharedPreferences("stressMap", 0).edit().putBoolean("isRunning", false).apply()
         }
 
         client.removeActivityTransitionUpdates(ActivityTransitionUtil.createPendingIntent(applicationContext))
             .addOnSuccessListener {
                 Log.d("MainRepo", "removeActivityUpdates: Successful unregistered")
-                isRunning = false
             }
             .addOnFailureListener {
                 Log.d("MainRepo", "removeActivityUpdates: Unsuccessful unregistered")
-                isRunning = true
             }
 
     }

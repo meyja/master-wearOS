@@ -10,6 +10,7 @@ import com.google.android.gms.location.DetectedActivity
 
 object ActivityTransitionUtil {
 
+    // All acitiity transition to register for
     private fun getTransitions(): MutableList<ActivityTransition> {
         val transitions = mutableListOf<ActivityTransition>()
 
@@ -64,8 +65,10 @@ object ActivityTransitionUtil {
         return transitions
     }
 
+    // create request for transitions
     fun getActivityTransitionRequest() = ActivityTransitionRequest(getTransitions())
 
+    // convert activity types to string
     fun toActivityString(activity: Int): String {
         return when (activity) {
             DetectedActivity.STILL -> "STILL"
@@ -76,6 +79,7 @@ object ActivityTransitionUtil {
         }
     }
 
+    // convert activity transition type to string
     fun toTransitionType(transitionType: Int): String  {
         return when (transitionType) {
             ActivityTransition.ACTIVITY_TRANSITION_ENTER -> "ENTER"
@@ -84,6 +88,7 @@ object ActivityTransitionUtil {
         }
     }
 
+    // creates pending intent to be used for broadcast reciever
     fun createPendingIntent(c: Context): PendingIntent {
         val intent = Intent(c, DetectedActivityReceiver::class.java)
         return PendingIntent.getBroadcast(

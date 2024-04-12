@@ -1,6 +1,7 @@
 package com.example.watchapp.presentation.service
 
 import android.content.Context
+import android.os.CountDownTimer
 import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
@@ -20,7 +21,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class StressStreamManager(val context: Context, val scope: CoroutineScope) {
+class StressStreamManager(
+    val context: Context,
+    val scope: CoroutineScope,
+    val countDownTimer: CountDownTimer,
+    val pause: () -> Unit) {
 
     private val TAG = "StressStreamManager"
 
@@ -88,6 +93,11 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
 
     }
 
+    /**
+     * Adds a new decibel data point to the window
+     *
+     * @param dB The decibel value.
+     */
     fun addDecibelDataPoint(dB: Double) {
         Log.d(TAG, "addDecibelDataPoint: $dB")
 
@@ -112,12 +122,14 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
 
             val timestamp = System.currentTimeMillis()
 
-            val loc = lastLocation ?: return@launch
+            val loc = lastLocation ?: return@launch // No location
             if (avgHr < MIN_HR_FOR_STRESS) return@launch // Not high enough heart rate
 
             Log.d(TAG, "doAnalysis: ${avgHr.toString()}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${avgDB}")
 
             startWorker(avgHr.toString(), loc.first, loc.second, timestamp.toString(), avgDB.toString())
+            countDownTimer.start()
+            pause()
         }
 
     }
@@ -150,11 +162,21 @@ class StressStreamManager(val context: Context, val scope: CoroutineScope) {
 
     }
 
+    /**
+     * Sets sessionid for the sreammanager
+     *
+     * @param sessionId the ID
+     */
     fun setSessionId(sessionId: UUID) {
         Log.d(TAG, "setSessionId: $sessionId")
         this.sessionId = sessionId
     }
 
+    /**
+     * Sets location for the streammanager
+     *
+     * @param loc the location
+     */
     fun setLocation(loc: Pair<String, String>) {
         lastLocation = loc
 

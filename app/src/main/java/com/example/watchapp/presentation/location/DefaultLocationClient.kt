@@ -44,7 +44,7 @@ class DefaultLocationClient(
             }
 
             client.requestLocationUpdates(
-                request,
+                request2,
                 locationCallback,
                 Looper.getMainLooper()
             )

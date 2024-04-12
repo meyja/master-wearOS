@@ -10,6 +10,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.CountDownTimer
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -40,9 +41,13 @@ class StressService() : Service(), SensorEventListener {
     private var stressStreamManager: StressStreamManager? = null
 
     private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec
+    private val RECORDING_LENGTH = 500L // 0.5 seconds
+    private val RECORDING_PAUSE = 10_000L // 10 seconds
 
     private var amountOfZeroesInARow = 0
     private val zeroLimit = 60 // 1 min
+
+    private val WINDOW_PAUSE_MILLI = 1 * 60_000L // 1 minutes
 
 
     //lateinit var notificationManager: NotificationManager
@@ -63,6 +68,7 @@ class StressService() : Service(), SensorEventListener {
     }
 
     private fun handleIntentAction(intent: Intent?) {
+        Log.d(TAG, "handleIntentAction: ${intent?.action.toString()}")
         when (intent?.action) {
             Actions.START.toString() -> {
                 if (isRunning) {
@@ -104,6 +110,7 @@ class StressService() : Service(), SensorEventListener {
         }
     }
 
+    // procedure for starting the service
     private fun start() {
         Log.d(TAG, "start function called.")
 
@@ -120,29 +127,37 @@ class StressService() : Service(), SensorEventListener {
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_MICROPHONE)
     }
 
+    // procedure for pausing the service, after a successful measurement
     private fun pause() {
         sensorManager.unregisterListener(this)
         scope.cancel()
     }
 
+    // procedure for starting the service after being paused
     private fun unpause() {
         setup()
     }
 
+    // procedure for stopping the service completley
     private fun stop() {
         stopForeground(STOP_FOREGROUND_DETACH)
         pause()
+
+        val sharedPreferences = getSharedPreferences("stressMap", 0)
+        sharedPreferences.edit().putBoolean("isRunning", false).apply() // Recording it has stopped
+
+        timer.cancel()
         stopSelf()
     }
 
+    // registers and gets service ready to record data
     private fun setup() {
         scope = CoroutineScope(SupervisorJob())
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        if(!checkHeartRateSensorFound() && !checkAccelerometerSensorFound()) return; // If no HR sensor, do not start service
+        if(!checkHeartRateSensorFound()) return; // If no HR sensor, do not start service
 
-        // Setup stream manager
-        stressStreamManager = StressStreamManager(this, scope)
+        stressStreamManager = StressStreamManager(this, scope, timer, ::pause)
         stressStreamManager!!.setSessionId(getSessionId())
 
         // Starting sensors
@@ -154,8 +169,8 @@ class StressService() : Service(), SensorEventListener {
         // Setup audio
         audioRecordingLoop(
             this,
-            500L,
-            10_000L,
+            RECORDING_LENGTH,
+            RECORDING_PAUSE,
             scope,
             stressStreamManager!!::addDecibelDataPoint
         )
@@ -163,6 +178,7 @@ class StressService() : Service(), SensorEventListener {
         setupLocation()
     }
 
+    // Starts location gathering loop
     private fun setupLocation() {
         val locationClient = DefaultLocationClient(
             this,
@@ -181,6 +197,7 @@ class StressService() : Service(), SensorEventListener {
             .launchIn(scope)
     }
 
+    // registers service to recieve HR data
     private fun registerHrSensorListener() {
         hrSensor?.also { hr ->
             sensorManager.registerListener(
@@ -208,9 +225,9 @@ class StressService() : Service(), SensorEventListener {
     }*/
 
     /**
+     * Checks if device has heartrate sensor
      * https://developer.android.com/develop/sensors-and-location/location/transitions
      */
-
     private fun checkHeartRateSensorFound(): Boolean {
         return if (sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null) {
             Log.d(TAG, "onCreate: Success! Heart rate sensor found")
@@ -222,16 +239,7 @@ class StressService() : Service(), SensorEventListener {
         }
     }
 
-    private fun checkAccelerometerSensorFound(): Boolean {
-        return if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-            Log.d(TAG, "onCreate: Success! Accelerometer sensor found")
-            true
-        } else {
-            Log.d(TAG, "onCreate: Error, no Accelerometer sensor found.")
-            false
-        }
-    }
-
+    // Recieves sensor data that service is registered to
     override fun onSensorChanged(event: SensorEvent) {
         val hr = event.values[0]
 
@@ -246,6 +254,7 @@ class StressService() : Service(), SensorEventListener {
 
     }
 
+    // If no hr data recieve for a long time, send notification that service is stopped and stop
     private fun inactiveStop() {
         val notification = NotificationCompat.Builder(this, "heartRate_channel")
             .setSmallIcon(R.mipmap.ic_launcher)
@@ -262,6 +271,11 @@ class StressService() : Service(), SensorEventListener {
         Log.d(TAG, "onSensorChanged: sensor ${sensor.toString()}")
     }
 
+    /**
+     * gets session id from shared prefrences, if not there it creates one
+     *
+     * @return UUID - sessionId
+     */
     private fun getSessionId(): UUID {
         // Get existing sessionId and timestamp
         val sharedPreferences = getSharedPreferences("stressMap", 0)
@@ -278,6 +292,11 @@ class StressService() : Service(), SensorEventListener {
         return createAndSaveUUID(sharedPreferences)
     }
 
+    /**
+     * Creates UUID and saves is to sharedprefrences
+     *
+     * @return UUID - sessionId
+     */
     private fun createAndSaveUUID(sharedPreferences: SharedPreferences): UUID {
 
         // There was an existing id and timestamp in sharedPreferences
@@ -294,5 +313,23 @@ class StressService() : Service(), SensorEventListener {
         editor.apply()
 
         return newId
+    }
+
+    // time for unpausing after recorded stress
+    val timer = object : CountDownTimer(WINDOW_PAUSE_MILLI, 1000) {
+        // Implement methods here
+        override fun onTick(p0: Long) {
+            return
+        }
+
+        override fun onFinish() { // when finished
+            unpause()
+        }
+    }
+
+    // Prevents leaking resources
+    override fun onDestroy() {
+        stop()
+        super.onDestroy()
     }
 }

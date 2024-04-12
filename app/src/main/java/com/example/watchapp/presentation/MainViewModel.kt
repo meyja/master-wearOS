@@ -38,15 +38,15 @@ class MainViewModel(private val repo: MainRepository) : ViewModel() {
      */
     fun stopService() {
         repo.stopService()
-        _isServiceRunning.value = false
+        _isServiceRunning.value = repo.isServiceRunning()
     }
 
     /**
      * Checks if the HeartRateService is currently running and updates the running state accordingly.
      */
-    private fun checkIfServiceIsRunning() {
+    fun checkIfServiceIsRunning() {
         _isServiceRunning.value =
-            repo.isServiceRunning("com.example.watchapp.presentation.service.StressService")
+            repo.isServiceRunning()
     }
 
     /**

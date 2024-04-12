@@ -13,6 +13,7 @@ import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import java.sql.Timestamp
 import java.time.LocalDate
 import java.util.UUID
 
@@ -32,7 +33,7 @@ class SelfReportRepository() {
         data.putString("lat", lat)
         data.putString("lon", lon)
         data.putString("dataPoint", dataPoint)
-        data.putString("timestamp", timestamp)
+        data.putString("timestamp", timestamp.toString())
         data.putString("sessionId", uuid.toString())
         data.putString("dB", dB.toString())
 

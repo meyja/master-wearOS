@@ -44,6 +44,7 @@ import com.example.watchapp.presentation.theme.WatchAppTheme
 class MainActivity : ComponentActivity() {
     private lateinit var receiver: DetectedActivityReceiver
     private lateinit var stressfactorLauncher: ActivityResultLauncher<Unit>
+    private var viewModel: MainViewModel? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         receiver = DetectedActivityReceiver()
@@ -70,14 +71,14 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val viewModel = viewModel<MainViewModel>(factory = MainViewModel.MainViewModelFactory(repo))
-            val runningState by viewModel.isRunningState.collectAsStateWithLifecycle()
+            viewModel = viewModel<MainViewModel>(factory = MainViewModel.MainViewModelFactory(repo))
+            val runningState by viewModel!!.isRunningState.collectAsStateWithLifecycle()
 
             WatchAppTheme {
                 MonitoringApp(
                     running = runningState,
-                    onStart = viewModel::startService,
-                    onStop = viewModel::stopService,
+                    onStart = viewModel!!::startService,
+                    onStop = viewModel!!::stopService,
                     {stressfactorLauncher.launch()})
             }
         }
@@ -129,6 +130,11 @@ class MainActivity : ComponentActivity() {
                 0
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (viewModel != null) viewModel!!.checkIfServiceIsRunning()
     }
 }
 

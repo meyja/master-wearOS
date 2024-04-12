@@ -62,7 +62,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
             val body = jsonObject.toString().toRequestBody(mediaType)
 
             val request = okhttp3.Request.Builder()
-                .url("http://ok.mimic.uiocloud.no/stressdata")
+                .url("https://ok.mimic.uiocloud.no/stressdata")
                 .post(body)
                 .build()
 

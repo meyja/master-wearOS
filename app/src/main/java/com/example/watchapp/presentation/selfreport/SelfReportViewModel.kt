@@ -55,11 +55,6 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
         returnMessage.value = 1
     }
 
-    fun getDB(): Double {
-
-        return 0.0
-    }
-
     fun setLocationProvider(fusedLocationProviderClient: FusedLocationProviderClient) {
         repo.setLocationProvider(fusedLocationProviderClient)
     }

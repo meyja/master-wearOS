@@ -104,12 +104,22 @@ class SelfReportActivity: ComponentActivity() {
         }
     }
 
+    /**
+     * Finishes self report and sends return code back
+     *
+     * @param returnCode the code to identify if the report was successfull
+     */
     private fun finishReport(returnCode: Int) {
         val result = Intent().putExtra(SelfReportContract.STRESSFACTOR, returnCode)
         setResult(Activity.RESULT_OK, result)
         finish()
     }
 
+    /**
+     * Checks if app has permission to location
+     *
+     * @return boolean weather app has permission or not
+     */
     private fun hasPermission(): Boolean { // Permissions should be checked in View
         return !(ActivityCompat.checkSelfPermission(
             this,
@@ -120,6 +130,11 @@ class SelfReportActivity: ComponentActivity() {
         ) != PackageManager.PERMISSION_GRANTED)
     }
 
+    /**
+     * gets session id from shared prefrences, if not there it creates one
+     *
+     * @return UUID - sessionId
+     */
     private fun getSessionId(): UUID {
         // Get existing sessionId and timestamp
         val sharedPreferences = getSharedPreferences("stressMap", 0)
@@ -136,6 +151,11 @@ class SelfReportActivity: ComponentActivity() {
         return createAndSaveUUID(sharedPreferences)
     }
 
+    /**
+     * Creates UUID and saves is to sharedprefrences
+     *
+     * @return UUID - sessionId
+     */
     private fun createAndSaveUUID(sharedPreferences: SharedPreferences): UUID {
         // There was an existing id and timestamp in sharedPreferences
         val today = LocalDate.now()
