@@ -95,6 +95,7 @@ class SelfReportActivity: ComponentActivity() {
 
             viewModel.returnMessage.observe(this) {
                 // Success, Aborted, or Failed
+                Log.d(TAG, "onReturnMsg: $it")
                 finishReport(it)
             }
 
@@ -116,18 +117,14 @@ class SelfReportActivity: ComponentActivity() {
     }
 
     /**
-     * Checks if app has permission to location
+     * Checks if app has permission to location and microphone
      *
      * @return boolean weather app has permission or not
      */
     private fun hasPermission(): Boolean { // Permissions should be checked in View
-        return !(ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED)
+        return (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                && (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                && (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
     }
 
     /**

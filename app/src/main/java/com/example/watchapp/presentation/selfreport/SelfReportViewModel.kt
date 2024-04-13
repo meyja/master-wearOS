@@ -23,7 +23,6 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
     private val _isReporting = MutableStateFlow(false)
     val isReportingState = _isReporting.asStateFlow()
 
-    private val _returnMessage = MutableStateFlow(-2)
     val returnMessage = MutableLiveData<Int>()
 
     fun changeSeverity(newSeverity: Int) {
@@ -36,15 +35,17 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
         _isReporting.value = true
 
         if (_severity.value == 0) {
-            _returnMessage.value = 0
+            returnMessage.value = 0
+            Log.d("ViewModel", "report: ${_severity.value}")
         }
-
-        repo.report(::onReceivedLocation)
+        else {
+            repo.report(::onReceivedLocation)
+        }
     }
     
     private fun onReceivedLocation(loc: Pair<String, String>?) {
         if (loc == null) { // Location not working
-            _returnMessage.value = -1
+            returnMessage.value = -1
             return
         }
 

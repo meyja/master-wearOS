@@ -2,6 +2,7 @@ package com.example.watchapp.presentation
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -42,12 +43,10 @@ import com.example.watchapp.presentation.theme.WatchAppTheme
 
 
 class MainActivity : ComponentActivity() {
-    private lateinit var receiver: DetectedActivityReceiver
     private lateinit var stressfactorLauncher: ActivityResultLauncher<Unit>
     private var viewModel: MainViewModel? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        receiver = DetectedActivityReceiver()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
                 this,
@@ -79,15 +78,30 @@ class MainActivity : ComponentActivity() {
                     running = runningState,
                     onStart = viewModel!!::startService,
                     onStop = viewModel!!::stopService,
-                    {stressfactorLauncher.launch()})
+                    startSelfReport = {stressfactorLauncher.launch()},
+                    hasPermission = ::hasPermission)
             }
         }
     }
 
+    /**
+     * Checks if app has permission to location and microphone
+     *
+     * @return boolean weather app has permission or not
+     */
+    private fun hasPermission(): Boolean { // Permissions should be checked in View
+        val permission = (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                && (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                && (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                && (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
+
+        if (! permission)Toast.makeText(applicationContext, "Does not have permission", Toast.LENGTH_SHORT).show()
+
+        return permission
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        // Unregister the receiver to prevent memory leaks
-        unregisterReceiver(receiver)
     }
 
     private fun acquireWakeLock() {
@@ -147,7 +161,7 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true, showSystemUi = true, device = "id:wearos_large_round")
 @Composable
 fun MonitoringAppPreview() {
-    MonitoringApp(true, {}, {}, {})
+    MonitoringApp(true, {}, {}, {}, {true})
 }
 
 /**
@@ -159,7 +173,7 @@ fun MonitoringAppPreview() {
  *
  */
 @Composable
-fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit, startSelfReport: () -> Unit) {
+fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit, startSelfReport: () -> Unit, hasPermission: () -> Boolean) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -175,8 +189,10 @@ fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit, sta
             modifier = Modifier.scale(2.5f),
             checked = running,
             onCheckedChange = {
-                if (it) onStart()
-                else onStop()
+                if(hasPermission()) {
+                    if (it) onStart()
+                    else onStop()
+                }
             })
         Spacer(modifier = Modifier.height(16.dp))
         Button(

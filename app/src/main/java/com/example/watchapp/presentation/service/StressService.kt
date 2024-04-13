@@ -116,8 +116,8 @@ class StressService() : Service(), SensorEventListener {
 
         val notification = NotificationCompat.Builder(this, "heartRate_channel")
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Monitoring heart rate")
-            .setContentText("HR: 00")
+            .setContentTitle("Monitoring stress")
+            .setContentText("Turn off in the app to stop tracking")
             .setOnlyAlertOnce(true)
             .setPriority(-2)
         Log.d(TAG, "Notification built.")
@@ -154,8 +154,11 @@ class StressService() : Service(), SensorEventListener {
     private fun setup() {
         scope = CoroutineScope(SupervisorJob())
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        if(!checkHeartRateSensorFound()) return; // If no HR sensor, do not start service
+        
+        if(!checkHeartRateSensorFound()) {
+            stop()
+            return // If no HR sensor, do not start service
+        };
 
         stressStreamManager = StressStreamManager(this, scope, timer, ::pause)
         stressStreamManager!!.setSessionId(getSessionId())
