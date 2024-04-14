@@ -17,7 +17,6 @@ import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
 import com.example.watchapp.presentation.location.DefaultLocationClient
 import com.example.watchapp.presentation.utils.Actions
-import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.example.watchapp.presentation.utils.audioRecordingLoop
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +31,6 @@ class StressService() : Service(), SensorEventListener {
     val TAG = "HeartRateService"
     private lateinit var sensorManager: SensorManager
     private var hrSensor: Sensor? = null
-    private var accelerometerSensor: Sensor? = null
     private var isRunning = false
     private var isPaused = false
 
@@ -154,11 +152,11 @@ class StressService() : Service(), SensorEventListener {
     private fun setup() {
         scope = CoroutineScope(SupervisorJob())
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        
+
         if(!checkHeartRateSensorFound()) {
             stop()
             return // If no HR sensor, do not start service
-        };
+        }
 
         stressStreamManager = StressStreamManager(this, scope, timer, ::pause)
         stressStreamManager!!.setSessionId(getSessionId())
