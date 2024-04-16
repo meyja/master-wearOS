@@ -56,6 +56,8 @@ class SelfReportActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if(!hasPermission()) finishReport(2)
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(applicationContext)
         workManager = WorkManager.getInstance(this)
 
