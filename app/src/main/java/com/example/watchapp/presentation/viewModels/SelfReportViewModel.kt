@@ -26,7 +26,7 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
     }
 
     fun report() {
-        if(_isReporting.value) return
+        if(_isReporting.value) return // if double pressed, ignore
 
         _isReporting.value = true
 

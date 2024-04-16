@@ -56,17 +56,17 @@ class SelfReportActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if(!hasPermission()) finishReport(2)
+        if(!hasPermission()) finishReport(-2)
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(applicationContext)
         workManager = WorkManager.getInstance(this)
 
         val repo = SelfReportRepository()
 
-        val dB = getDecibel(this, 500) // takes noise measurements when the activity is started
+        //val dB = getDecibel(this, 500) // takes noise measurements when the activity is started
         // might need to do this on separate thread, now pauses ui thread for 500ms
 
-        Log.d(TAG, "dB: $dB")
+        //Log.d(TAG, "dB: $dB")
 
         setContent {
             // Preparing ViewModel and repository
@@ -75,8 +75,8 @@ class SelfReportActivity: ComponentActivity() {
             // Primitive Dependency Injection - to lazy to use Dagger
             viewModel.setLocationProvider(fusedLocationProviderClient)
             viewModel.setWorkManager(workManager)
-            viewModel.setDB(dB)
-            viewModel.setUUID(getSessionId())
+            //viewModel.setDB(dB)
+            //viewModel.setUUID(getSessionId())
 
             val severity by viewModel.severity.collectAsStateWithLifecycle()
 
@@ -87,7 +87,15 @@ class SelfReportActivity: ComponentActivity() {
             }
 
             WatchAppTheme {
-                StressfactorApp(severity, viewModel::changeSeverity, viewModel::report, ::hasPermission, ::finishReport)
+                StressfactorApp(severity, viewModel::changeSeverity, viewModel::report, ::hasPermission, ::finishReport) {
+                    val dB = getDecibel(
+                        this,
+                        500
+                    ) // takes noise measurements when the activity is started
+                    viewModel.setDB(dB)
+                    viewModel.setUUID(getSessionId())
+
+                }
             }
         }
     }
@@ -165,11 +173,11 @@ fun StressfactorAppPreview() {
     fun example(): Boolean {
         return true
     }
-    StressfactorApp(5, {}, {}, ::example, {})
+    StressfactorApp(5, {}, {}, ::example, {}, {})
 }
 
 @Composable
-fun StressfactorApp(severity: Int, onSeverityChange: (Int)->Unit, report: ()->Unit, hasPermission: ()->Boolean, finishReport: (Int) -> Unit) {
+fun StressfactorApp(severity: Int, onSeverityChange: (Int)->Unit, report: ()->Unit, hasPermission: ()->Boolean, finishReport: (Int) -> Unit, doNoiseReading: ()->Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -192,8 +200,11 @@ fun StressfactorApp(severity: Int, onSeverityChange: (Int)->Unit, report: ()->Un
                 .padding(horizontal = 16.dp)
                 .width(100.dp),
             onClick = {
-                if(hasPermission()) report()
-                else finishReport(2) // No permission
+                if(hasPermission()) {
+                    if (severity != 0) doNoiseReading()
+                    report()
+                }
+                else finishReport(-2) // No permission
             },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
         ) {
