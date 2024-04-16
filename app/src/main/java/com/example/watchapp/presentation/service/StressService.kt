@@ -15,7 +15,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.watchapp.R
-import com.example.watchapp.presentation.location.DefaultLocationClient
+import com.example.watchapp.presentation.utils.location.DefaultLocationClient
 import com.example.watchapp.presentation.utils.Actions
 import com.example.watchapp.presentation.utils.audioRecordingLoop
 import com.google.android.gms.location.LocationServices

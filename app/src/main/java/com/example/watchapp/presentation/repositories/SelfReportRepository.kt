@@ -1,7 +1,5 @@
-package com.example.watchapp.presentation.selfreport
+package com.example.watchapp.presentation.repositories
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
@@ -12,9 +10,6 @@ import androidx.work.WorkManager
 import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import java.sql.Timestamp
-import java.time.LocalDate
 import java.util.UUID
 
 class SelfReportRepository() {
@@ -26,16 +21,16 @@ class SelfReportRepository() {
         getCurrentLocationNonBlocking(fusedLocationProviderClient, callback)
     }
 
-    fun startWorker(dataPoint: String, lat: String, lon: String) {
+    fun startWorker(stressValue: String, lat: String, lon: String) {
         val timestamp = System.currentTimeMillis().toString()
         // Putting data for worker to retrieve
         val data: Data.Builder = Data.Builder()
         data.putString("lat", lat)
         data.putString("lon", lon)
-        data.putString("dataPoint", dataPoint)
+        data.putString("stressValue", stressValue)
         data.putString("timestamp", timestamp.toString())
         data.putString("sessionId", uuid.toString())
-        data.putString("dB", dB.toString())
+        data.putString("decibel", dB.toString())
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)

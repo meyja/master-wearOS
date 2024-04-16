@@ -1,9 +1,9 @@
-package com.example.watchapp.presentation.selfreport
+package com.example.watchapp.presentation.data
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.activity.result.contract.ActivityResultContract
+import com.example.watchapp.presentation.views.SelfReportActivity
 
 class SelfReportContract: ActivityResultContract<Unit, String>() {
 

@@ -3,7 +3,7 @@ package com.example.watchapp.presentation.utils
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.example.watchapp.presentation.DetectedActivityReceiver
+import com.example.watchapp.presentation.service.DetectedActivityReceiver
 import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionRequest
 import com.google.android.gms.location.DetectedActivity

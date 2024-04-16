@@ -21,12 +21,12 @@ import java.util.concurrent.TimeUnit
 class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(context, workerParams) {
     override fun doWork(): Result {
 
-        val dataPoint = inputData.getString("dataPoint")
+        val dataPoint = inputData.getString("stressValue")
         val lat = inputData.getString("lat")
         val lon = inputData.getString("lon")
         val timestamp = inputData.getString("timestamp")
         val id = inputData.getString("sessionId")
-        val dB = inputData.getString("dB")
+        val dB = inputData.getString("decibel")
 
         Log.d("SendDataWorker", "doWork: ${lat}, ${lon}, ${dataPoint}, ${timestamp}, ${id}, ${dB}")
 
@@ -50,10 +50,10 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
             try {
                 jsonObject.put("lat", lat!!)
                 jsonObject.put("lon", lon!!)
-                jsonObject.put("dataPoint", dataPoint!!)
+                jsonObject.put("stressValue", dataPoint!!)
                 jsonObject.put("timestamp", timestamp!!)
                 jsonObject.put("sessionId", id!!)
-                jsonObject.put("dB", dB!!)
+                jsonObject.put("decibel", dB!!)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }

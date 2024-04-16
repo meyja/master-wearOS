@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation
+package com.example.watchapp.presentation.views
 
 import android.app.Application
 import android.app.NotificationChannel

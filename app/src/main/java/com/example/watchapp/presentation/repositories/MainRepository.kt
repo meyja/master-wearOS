@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation.data
+package com.example.watchapp.presentation.repositories
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager

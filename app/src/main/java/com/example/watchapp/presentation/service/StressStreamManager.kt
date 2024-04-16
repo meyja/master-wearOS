@@ -10,14 +10,8 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.watchapp.presentation.data.SendDataWorker
-import com.example.watchapp.presentation.location.DefaultLocationClient
-import com.example.watchapp.presentation.location.LocationClient
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.example.watchapp.presentation.models.Stressdata
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -40,34 +34,6 @@ class StressStreamManager(
 
     private lateinit var sessionId: UUID
 
-    /*init {
-        locationClient = DefaultLocationClient(
-            context,
-            fusedLocationProviderClient
-        )
-
-        locationClient
-            .getLocationUpdates(LOCATIONINTERVAL_MILLI)
-            .onEach { location ->
-                val lat = location.latitude.toString()
-                val lon = location.longitude.toString()
-                lastLocation = Pair(lat, lon)
-                Log.d(TAG, "locationUpdate: ${lastLocation.toString()}")
-
-            }
-            .launchIn(scope)
-    }*/
-
-
-    //val c = context
-
-    /*init {
-        Log.d(TAG, "context: ${c.toString()} isnull: ${c.equals(null)}")
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(c)
-    }*/
-
-
-
     /**
      * Adds a new heart rate data point to the window
      *
@@ -87,7 +53,6 @@ class StressStreamManager(
             heartrateData = ArrayList()
             decibelData = ArrayList()
         }
-
         heartrateData.add(hr)
 
 
@@ -127,7 +92,16 @@ class StressStreamManager(
 
             Log.d(TAG, "doAnalysis: ${avgHr.toString()}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${avgDB}")
 
-            startWorker(avgHr.toString(), loc.first, loc.second, timestamp.toString(), avgDB.toString())
+            val stressData = Stressdata(
+                loc.first,
+                loc.second,
+                avgHr.toString(),
+                timestamp.toString(),
+                sessionId.toString(),
+                avgDB.toString())
+
+
+            startWorker(stressData)
             countDownTimer.start()
             pause()
         }
@@ -139,15 +113,15 @@ class StressStreamManager(
      * Starts a worker to do a network request, sends lat, lon, and avg.
      * Network must be available for worker to start
      */
-    private fun startWorker(dataPoint: String, lat: String, lon: String, timestamp: String, dB: String) {
+    private fun startWorker(stressData: Stressdata) {
         // Putting data for worker to retrieve
         val data: Data.Builder = Data.Builder()
-        data.putString("lat", lat)
-        data.putString("lon", lon)
-        data.putString("dataPoint", dataPoint)
-        data.putString("timestamp", timestamp)
-        data.putString("sessionId", sessionId.toString())
-        data.putString("dB", dB)
+        data.putString("lat", stressData.lat)
+        data.putString("lon", stressData.lon)
+        data.putString("stressValue", stressData.stressValue)
+        data.putString("timestamp", stressData.timestamp)
+        data.putString("sessionId", stressData.sessionId)
+        data.putString("decibel", stressData.decibel)
 
         // Creating Worker
         val builder: Constraints.Builder = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)

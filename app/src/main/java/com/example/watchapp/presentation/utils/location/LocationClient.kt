@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation.location
+package com.example.watchapp.presentation.utils.location
 
 import android.location.Location
 import kotlinx.coroutines.flow.Flow

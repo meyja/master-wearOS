@@ -1,10 +1,9 @@
-package com.example.watchapp.presentation
+package com.example.watchapp.presentation.service
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.example.watchapp.presentation.service.StressService
 import com.example.watchapp.presentation.utils.Actions
 import com.example.watchapp.presentation.utils.ActivityTransitionUtil
 import com.google.android.gms.location.ActivityTransitionResult

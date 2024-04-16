@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation
+package com.example.watchapp.presentation.views
 
 import android.Manifest
 import android.app.AlertDialog
@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -37,9 +35,10 @@ import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Switch
 import androidx.wear.compose.material.SwitchDefaults
 import androidx.wear.compose.material.Text
-import com.example.watchapp.presentation.data.MainRepository
-import com.example.watchapp.presentation.selfreport.SelfReportContract
+import com.example.watchapp.presentation.repositories.MainRepository
+import com.example.watchapp.presentation.data.SelfReportContract
 import com.example.watchapp.presentation.theme.WatchAppTheme
+import com.example.watchapp.presentation.viewModels.MainViewModel
 
 
 class MainActivity : ComponentActivity() {

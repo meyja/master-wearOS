@@ -1,15 +1,11 @@
-package com.example.watchapp.presentation.selfreport
+package com.example.watchapp.presentation.viewModels
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.work.Constraints
-import androidx.work.NetworkType
 import androidx.work.WorkManager
-import com.example.watchapp.presentation.MainViewModel
-import com.example.watchapp.presentation.data.MainRepository
-import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
+import com.example.watchapp.presentation.repositories.SelfReportRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

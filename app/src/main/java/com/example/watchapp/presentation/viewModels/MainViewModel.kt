@@ -1,8 +1,8 @@
-package com.example.watchapp.presentation
+package com.example.watchapp.presentation.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.watchapp.presentation.data.MainRepository
+import com.example.watchapp.presentation.repositories.MainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

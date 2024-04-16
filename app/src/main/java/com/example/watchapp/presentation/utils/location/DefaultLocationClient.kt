@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation.location
+package com.example.watchapp.presentation.utils.location
 
 import android.annotation.SuppressLint
 import android.content.Context
