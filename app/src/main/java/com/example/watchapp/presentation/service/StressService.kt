@@ -39,8 +39,8 @@ class StressService() : Service(), SensorEventListener {
     private var stressStreamManager: StressStreamManager? = null
 
     private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec
-    private val RECORDING_LENGTH = 500L // 0.5 seconds
-    private val RECORDING_PAUSE = 10_000L // 10 seconds
+    private val RECORDING_LENGTH_MILLI = 500L // 0.5 seconds
+    private val RECORDING_PAUSE_MILLI = 10_000L // 10 seconds
 
     private var amountOfZeroesInARow = 0
     private val zeroLimit = 60 // 1 min
@@ -170,8 +170,8 @@ class StressService() : Service(), SensorEventListener {
         // Setup audio
         audioRecordingLoop(
             this,
-            RECORDING_LENGTH,
-            RECORDING_PAUSE,
+            RECORDING_LENGTH_MILLI,
+            RECORDING_PAUSE_MILLI,
             scope,
             stressStreamManager!!::addDecibelDataPoint
         )
