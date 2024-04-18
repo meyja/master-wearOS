@@ -3,6 +3,7 @@ package com.example.watchapp.presentation.service
 import android.content.Context
 import android.os.CountDownTimer
 import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
@@ -14,6 +15,7 @@ import com.example.watchapp.presentation.models.Stressdata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class StressStreamManager(
     val context: Context,
@@ -130,6 +132,11 @@ class StressStreamManager(
             .addTag("SendData")
             .setInputData(data.build())
             .setConstraints(builder.build())
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                10,
+                TimeUnit.MINUTES
+            )
             .build()
 
         WorkManager.getInstance(context).enqueue(oneTimeWork)

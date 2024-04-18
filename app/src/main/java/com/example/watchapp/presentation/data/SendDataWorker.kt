@@ -77,11 +77,11 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
                 Log.e("PostDataWorker", "Failed to post data: " + response.toString())
 
                 response.close()
-                Result.failure()
+                Result.retry()
             }
         } catch (e: IOException) {
             Log.e("PostDataWorker", "Network error posting data: ", e)
-            return Result.failure()
+            return Result.retry()
         }
     }
 }
