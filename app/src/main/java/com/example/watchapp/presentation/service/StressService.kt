@@ -89,6 +89,7 @@ class StressService() : Service(), SensorEventListener {
             }
 
             Actions.TRANSITION.toString() -> {
+                if(!isRunning) return // Gets event but the service is not running
                 val transition = intent.getStringExtra("transitionType")
 
                 Log.d(TAG, "handleIntentAction: STILL ${intent.getStringExtra("transitionType")}")
