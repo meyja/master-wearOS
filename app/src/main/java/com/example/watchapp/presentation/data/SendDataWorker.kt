@@ -81,7 +81,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
             }
         } catch (e: IOException) {
             Log.e("PostDataWorker", "Network error posting data: ", e)
-            return Result.retry()
+            return Result.failure()
         }
     }
 }

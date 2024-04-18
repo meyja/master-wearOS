@@ -1,6 +1,7 @@
 package com.example.watchapp.presentation.repositories
 
 import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
@@ -11,6 +12,7 @@ import com.example.watchapp.presentation.data.SendDataWorker
 import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
 import com.google.android.gms.location.FusedLocationProviderClient
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class SelfReportRepository() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -39,6 +41,11 @@ class SelfReportRepository() {
             .addTag("SendData")
             .setInputData(data.build())
             .setConstraints(builder.build())
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                10,
+                TimeUnit.MINUTES
+            )
             .build()
 
         workManager.enqueue(oneTimeWork)
