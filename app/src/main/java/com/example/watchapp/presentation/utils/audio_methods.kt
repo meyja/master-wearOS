@@ -13,9 +13,9 @@ import java.io.File
 import kotlin.math.log10
 
 // makes recording and extracts decibel
-fun getDecibel(c: Context, length: Long): Double {
+fun getDecibel(c: Context, TIME_AUDIO: Long): Double {
     // Initialize variables
-    val TIME_AUDIO: Long = length// Length of recording in ms
+    //val TIME_AUDIO: Long = length// Length of recording in ms
     val recorder = MediaRecorder(c)
     val audioFile = createTempAudioFile(c) // Create a temporary file to store the recording
 
@@ -68,9 +68,6 @@ private fun createTempAudioFile(c: Context): File {
 // Loop for recording audio, with callback for when recorded and wait between each loop
 fun audioRecordingLoop(c: Context, recordingLength: Long, recordingPauseLength: Long, scope: CoroutineScope, callback: (Double) -> Unit) {
     scope.launch {
-        val recorder = MediaRecorder(c)
-        val audioFile = createTempAudioFile(c) // Create a temporary file to store the recording
-
         while (this.isActive) {
             callback(getDecibel(c, recordingLength))
             delay(recordingPauseLength)
