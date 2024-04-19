@@ -173,9 +173,14 @@ class StressService() : Service(), SensorEventListener {
             this,
             RECORDING_LENGTH_MILLI,
             RECORDING_PAUSE_MILLI,
-            scope,
-            stressStreamManager!!::addDecibelDataPoint
-        )
+            scope
+        ) {
+            if (it == -1.0) {
+                msgStop("Audio recording not working")
+            } else {
+                stressStreamManager!!.addDecibelDataPoint(it)
+            }
+        }
 
         setupLocation()
     }
@@ -248,7 +253,7 @@ class StressService() : Service(), SensorEventListener {
         if(hr == 0.0f) {
             amountOfZeroesInARow ++
             if (amountOfZeroesInARow >= zeroLimit) {
-                inactiveStop()
+                msgStop("No heartrate register for a period of time, return to app to turn on")
             }
         }
         Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
@@ -257,11 +262,11 @@ class StressService() : Service(), SensorEventListener {
     }
 
     // If no hr data recieve for a long time, send notification that service is stopped and stop
-    private fun inactiveStop() {
+    private fun msgStop(msg: String) {
         val notification = NotificationCompat.Builder(this, "heartRate_channel")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("StressService turned off")
-            .setContentText("No heartrate register for a period of time, return to app to turn on")
+            .setContentText(msg)
             .build()
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(1000, notification)

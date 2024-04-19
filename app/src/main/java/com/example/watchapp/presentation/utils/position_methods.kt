@@ -37,7 +37,12 @@ fun getCurrentLocationNonBlocking(
         )
 
     loc.addOnSuccessListener {
-        callback(Pair(it.latitude.toString(), it.longitude.toString()))
+        try {
+            callback(Pair(it.latitude.toString(), it.longitude.toString()))
+        } catch (e: Exception) {
+            callback(null)
+        }
+
     }
 
     loc.addOnFailureListener {

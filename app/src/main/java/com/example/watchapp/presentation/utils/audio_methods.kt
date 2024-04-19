@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.math.log10
 
 // makes recording and extracts decibel
 fun getDecibel(c: Context, length: Long): Double {
@@ -39,10 +40,10 @@ fun getDecibel(c: Context, length: Long): Double {
         val maxAmplitude = recorder.maxAmplitude
         //Log.d(TAG, "maxamp: $maxAmplitude")
         Log.d("getDecibel", maxAmplitude.toString())
-        if (maxAmplitude <= 0) return 0.0
+        if (maxAmplitude <= 0) return -1.0
 
         // Turning amplitude to decibel, +90 constant to have positive numbers
-        val dB = (20 * Math.log10(maxAmplitude / 32767.0))+90
+        val dB = (20 * log10(maxAmplitude / 32767.0))+90
 
         return dB
     } catch (e: Exception) {
