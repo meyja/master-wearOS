@@ -134,7 +134,9 @@ class StressService() : Service(), SensorEventListener {
 
     // procedure for starting the service after being paused
     private fun unpause() {
+        if(!isPaused) return // is already running
         setup()
+        isPaused = false
     }
 
     // procedure for stopping the service completley
