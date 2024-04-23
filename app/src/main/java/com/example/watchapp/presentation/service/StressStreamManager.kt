@@ -25,7 +25,7 @@ class StressStreamManager(
 
     private val TAG = "StressStreamManager"
 
-    private val WINDOW_MILLI = 10_000
+    private val WINDOW_MILLI = 120_000
     private var windowStart: Long = 0
     private var MIN_HR_FOR_STRESS = 90
 
@@ -90,7 +90,7 @@ class StressStreamManager(
             val timestamp = System.currentTimeMillis()
 
             val loc = lastLocation ?: return@launch // No location
-            if (avgHr < MIN_HR_FOR_STRESS) return@launch // Not high enough heart rate
+            if (avgHr < MIN_HR_FOR_STRESS || decibelDataCopy.isEmpty()) return@launch // Not high enough heart rate, no decibeldata
 
             Log.d(TAG, "doAnalysis: ${avgHr.toString()}, lat: ${loc.first}, lon: ${loc.second}, timestamp: ${timestamp.toString()}, dB: ${avgDB}")
 

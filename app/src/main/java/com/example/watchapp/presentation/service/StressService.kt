@@ -38,14 +38,14 @@ class StressService() : Service(), SensorEventListener {
 
     private var stressStreamManager: StressStreamManager? = null
 
-    private val LOCATIONINTERVAL_MILLI = 10_000L // 10 sec
+    private val LOCATIONINTERVAL_MILLI = 60_000L // 60 sec
     private val RECORDING_LENGTH_MILLI = 500L // 0.5 seconds
-    private val RECORDING_PAUSE_MILLI = 10_000L // 10 seconds
+    private val RECORDING_PAUSE_MILLI = 30_000L // 30 seconds
 
     private var amountOfZeroesInARow = 0
-    private val zeroLimit = 60 // 1 min
+    private val zeroLimit = 120 // 2 min
 
-    private val WINDOW_PAUSE_MILLI = 1 * 60_000L // 1 minutes
+    private val WINDOW_PAUSE_MILLI = 15 * 60_000L // 15 minutes
 
 
     //lateinit var notificationManager: NotificationManager
