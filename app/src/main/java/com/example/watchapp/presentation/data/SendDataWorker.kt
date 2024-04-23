@@ -21,13 +21,14 @@ import java.util.concurrent.TimeUnit
 class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(context, workerParams) {
     override fun doWork(): Result {
 
-        val dataPoint = inputData.getString("dataPoint")
+        val dataPoint = inputData.getString("stressValue")
         val lat = inputData.getString("lat")
         val lon = inputData.getString("lon")
         val timestamp = inputData.getString("timestamp")
         val id = inputData.getString("sessionId")
+        val dB = inputData.getString("decibel")
 
-        Log.d(TAG, "doWork: ${lat}, ${lon}, ${dataPoint}, ${timestamp}")
+        Log.d("SendDataWorker", "doWork: ${lat}, ${lon}, ${dataPoint}, ${timestamp}, ${id}, ${dB}")
 
         if (dataPoint.equals(null) || lat.equals(null) || lon.equals(null) || timestamp.equals(null)) return Result.failure()
 
@@ -49,9 +50,10 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
             try {
                 jsonObject.put("lat", lat!!)
                 jsonObject.put("lon", lon!!)
-                jsonObject.put("dataPoint", dataPoint!!)
+                jsonObject.put("stressValue", dataPoint!!)
                 jsonObject.put("timestamp", timestamp!!)
                 jsonObject.put("sessionId", id!!)
+                jsonObject.put("decibel", dB!!)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
@@ -60,7 +62,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
             val body = jsonObject.toString().toRequestBody(mediaType)
 
             val request = okhttp3.Request.Builder()
-                .url("https://mongoapi-lr9d.onrender.com/stressdata")
+                .url("https://bruh.mimic.uiocloud.no/stressdata")
                 .post(body)
                 .build()
 
@@ -75,7 +77,7 @@ class SendDataWorker(context: Context, workerParams: WorkerParameters): Worker(c
                 Log.e("PostDataWorker", "Failed to post data: " + response.toString())
 
                 response.close()
-                Result.failure()
+                Result.retry()
             }
         } catch (e: IOException) {
             Log.e("PostDataWorker", "Network error posting data: ", e)

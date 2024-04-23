@@ -30,7 +30,7 @@
     <uses-feature android:name="android.hardware.type.watch" />
 
     <application
-        android:name=".presentation.HeartRateApp"
+        android:name=".presentation.views.HeartRateApp"
         android:icon="@mipmap/ic_launcher_2"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -49,7 +49,7 @@
             android:value="true" />
 
         <activity
-            android:name=".presentation.MainActivity"
+            android:name=".presentation.views.MainActivity"
             android:exported="true"
             android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
@@ -58,13 +58,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".presentation.selfreport.SelfReportActivity" >
-
-        </activity>
-        <service android:name=".presentation.service.HeartRateService"
+        <activity android:name=".presentation.views.SelfReportActivity" />
+        <service android:name=".presentation.service.StressService"
             android:foregroundServiceType="location|dataSync|microphone"/>
 
-        <receiver android:name=".presentation.DetectedActivityReceiver" android:exported="true">
+        <receiver android:name=".presentation.service.DetectedActivityReceiver"
+            android:exported="true"
+            android:permission="com.google.android.gms.permission.ACTIVITY_RECOGNITION">
+
             <intent-filter>
                 <action android:name="android.activity_recognition.ACTION_TRANSITION" />
             </intent-filter>

@@ -1,4 +1,4 @@
-package com.example.watchapp.presentation.location
+package com.example.watchapp.presentation.utils.location
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -32,6 +32,7 @@ class DefaultLocationClient(
             val request = LocationRequest.create()
                 .setInterval(interval)
                 .setFastestInterval(interval)
+            val request2: LocationRequest = LocationRequest.Builder(interval).build() // Not deprecated, maybe same behaviour
 
             val locationCallback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {

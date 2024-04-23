@@ -1,8 +1,8 @@
-package com.example.watchapp.presentation
+package com.example.watchapp.presentation.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.watchapp.presentation.data.MainRepository
+import com.example.watchapp.presentation.repositories.MainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -38,15 +38,15 @@ class MainViewModel(private val repo: MainRepository) : ViewModel() {
      */
     fun stopService() {
         repo.stopService()
-        _isServiceRunning.value = false
+        _isServiceRunning.value = repo.isServiceRunning()
     }
 
     /**
      * Checks if the HeartRateService is currently running and updates the running state accordingly.
      */
-    private fun checkIfServiceIsRunning() {
+    fun checkIfServiceIsRunning() {
         _isServiceRunning.value =
-            repo.isServiceRunning("com.example.watchapp.presentation.service.HeartRateService")
+            repo.isServiceRunning()
     }
 
     /**

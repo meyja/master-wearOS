@@ -1,18 +1,15 @@
-package com.example.watchapp.presentation.selfreport
+package com.example.watchapp.presentation.viewModels
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.work.Constraints
-import androidx.work.NetworkType
 import androidx.work.WorkManager
-import com.example.watchapp.presentation.MainViewModel
-import com.example.watchapp.presentation.data.MainRepository
-import com.example.watchapp.presentation.utils.getCurrentLocationNonBlocking
+import com.example.watchapp.presentation.repositories.SelfReportRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.UUID
 
 class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
 
@@ -22,7 +19,6 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
     private val _isReporting = MutableStateFlow(false)
     val isReportingState = _isReporting.asStateFlow()
 
-    private val _returnMessage = MutableStateFlow(-2)
     val returnMessage = MutableLiveData<Int>()
 
     fun changeSeverity(newSeverity: Int) {
@@ -30,22 +26,26 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
     }
 
     fun report() {
-        if(_isReporting.value) return
+        if(_isReporting.value) return // if double pressed, ignore
 
         _isReporting.value = true
 
         if (_severity.value == 0) {
-            _returnMessage.value = 0
+            returnMessage.value = 0
+            Log.d("ViewModel", "report: ${_severity.value}")
         }
-
-        repo.report(::onReceivedLocation)
+        else {
+            repo.report(::onReceivedLocation)
+        }
     }
     
     private fun onReceivedLocation(loc: Pair<String, String>?) {
         if (loc == null) { // Location not working
-            _returnMessage.value = -1
+            returnMessage.value = -1
             return
         }
+
+
 
         repo.startWorker(_severity.value.toString(), loc.first, loc.second)
 
@@ -58,6 +58,14 @@ class SelfReportViewModel(private val repo: SelfReportRepository): ViewModel() {
 
     fun setWorkManager(workManager: WorkManager) {
         repo.setWorkManager(workManager)
+    }
+
+    fun setDB(dB: Double) {
+        repo.setDB(dB)
+    }
+
+    fun setUUID(uuid: UUID) {
+        repo.setUUID(uuid)
     }
 
 
