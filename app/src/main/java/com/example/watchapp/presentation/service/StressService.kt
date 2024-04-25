@@ -45,7 +45,7 @@ class StressService() : Service(), SensorEventListener {
     private var amountOfZeroesInARow = 0
     private val zeroLimit = 120 // 2 min
 
-    private val WINDOW_PAUSE_MILLI = 15 * 60_000L // 15 minutes
+    private val WINDOW_PAUSE_MILLI = 3 * 60_000L // 3 minutes
 
 
     //lateinit var notificationManager: NotificationManager
