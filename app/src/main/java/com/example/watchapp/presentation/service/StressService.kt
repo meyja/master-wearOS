@@ -22,9 +22,12 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.Calendar
 import java.util.UUID
 
 class StressService() : Service(), SensorEventListener {
@@ -75,7 +78,7 @@ class StressService() : Service(), SensorEventListener {
                 }
 
                 isRunning = true
-                setup()
+                //setup()
                 start()
                 Log.d(
                     TAG,
@@ -124,6 +127,19 @@ class StressService() : Service(), SensorEventListener {
         //notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         startForeground(1, notification.build(), FOREGROUND_SERVICE_TYPE_MICROPHONE)
+
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        scope = CoroutineScope(SupervisorJob())
+
+        scope.launch {
+            (0..1000).forEach {
+                Log.d("HEARTBEAT", it.toString())
+                val updatedNotification = notification.setContentText("${Calendar.getInstance().time}")
+                notificationManager.notify(1, updatedNotification.build())
+                delay(5000)
+            }
+        }
     }
 
     // procedure for pausing the service, after a successful measurement
@@ -143,12 +159,14 @@ class StressService() : Service(), SensorEventListener {
     // procedure for stopping the service completley
     private fun stop() {
         stopForeground(STOP_FOREGROUND_DETACH)
-        pause()
+        //pause()
+        
+        scope.cancel()
 
         val sharedPreferences = getSharedPreferences("stressMap", 0)
         sharedPreferences.edit().putBoolean("isRunning", false).apply() // Recording it has stopped
 
-        timer.cancel()
+        //timer.cancel()
         stopSelf()
     }
 

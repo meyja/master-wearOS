@@ -70,6 +70,7 @@ class MainRepository(
             applicationContext.startService(it)
             applicationContext.getSharedPreferences("stressMap", 0).edit().putBoolean("isRunning", true).apply()
         }
+        /*
         client
             .requestActivityTransitionUpdates(
                 ActivityTransitionUtil.getActivityTransitionRequest(),
@@ -80,7 +81,7 @@ class MainRepository(
             }
             .addOnFailureListener {
                 Log.d("MainRepo", "requestActivityUpdates: Failure - Request Updated")
-            }
+            }*/
 
     }
 
@@ -99,14 +100,14 @@ class MainRepository(
             applicationContext.startService(it)
             applicationContext.getSharedPreferences("stressMap", 0).edit().putBoolean("isRunning", false).apply()
         }
-
+        /*
         client.removeActivityTransitionUpdates(ActivityTransitionUtil.createPendingIntent(applicationContext))
             .addOnSuccessListener {
                 Log.d("MainRepo", "removeActivityUpdates: Successful unregistered")
             }
             .addOnFailureListener {
                 Log.d("MainRepo", "removeActivityUpdates: Unsuccessful unregistered")
-            }
+            }*/
 
     }
 }
