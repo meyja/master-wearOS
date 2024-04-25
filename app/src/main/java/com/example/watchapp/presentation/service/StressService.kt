@@ -133,10 +133,10 @@ class StressService() : Service(), SensorEventListener {
         scope = CoroutineScope(SupervisorJob())
 
         scope.launch {
-            (0..1000).forEach {
-                Log.d("HEARTBEAT", it.toString())
-                val updatedNotification = notification.setContentText("${Calendar.getInstance().time}")
-                notificationManager.notify(1, updatedNotification.build())
+            while(true) {
+                //Log.d("HEARTBEAT", it.toString())
+                //val updatedNotification = notification.setContentText("${Calendar.getInstance().time}")
+                //notificationManager.notify(1, updatedNotification.build())
                 delay(5000)
             }
         }
