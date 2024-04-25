@@ -130,6 +130,7 @@ class StressService() : Service(), SensorEventListener {
     private fun pause() {
         sensorManager.unregisterListener(this)
         scope.cancel()
+        isPaused = true
     }
 
     // procedure for starting the service after being paused
@@ -328,10 +329,12 @@ class StressService() : Service(), SensorEventListener {
     val timer = object : CountDownTimer(WINDOW_PAUSE_MILLI, 1000) {
         // Implement methods here
         override fun onTick(p0: Long) {
+            Log.d(TAG, "onTick: tick")
             return
         }
 
         override fun onFinish() { // when finished
+            Log.d(TAG, "onFinish: unpause")
             unpause()
         }
     }
