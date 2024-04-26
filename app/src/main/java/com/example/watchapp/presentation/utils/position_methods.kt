@@ -32,7 +32,7 @@ fun getCurrentLocationNonBlocking(
     val cancelToken = CancellationTokenSource()
     val loc =
         fusedLocationProviderClient.getCurrentLocation(
-            LocationRequest.QUALITY_HIGH_ACCURACY,
+            LocationRequest.QUALITY_BALANCED_POWER_ACCURACY,
             cancelToken.token
         )
 
