@@ -9,6 +9,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -32,7 +33,8 @@ class DefaultLocationClient(
             val request = LocationRequest.create()
                 .setInterval(interval)
                 .setFastestInterval(interval)
-            val request2: LocationRequest = LocationRequest.Builder(interval).build() // Not deprecated, maybe same behaviour
+
+            val request2: LocationRequest = LocationRequest.Builder(interval).build() // Not deprecated version
 
             val locationCallback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
@@ -44,7 +46,7 @@ class DefaultLocationClient(
             }
 
             client.requestLocationUpdates(
-                request,
+                request2,
                 locationCallback,
                 Looper.getMainLooper()
             )
