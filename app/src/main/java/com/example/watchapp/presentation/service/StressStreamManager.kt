@@ -104,8 +104,8 @@ class StressStreamManager(
 
 
             startWorker(stressData)
-            countDownTimer.start()
-            pause()
+            //countDownTimer.start()
+            //pause()
         }
 
     }
