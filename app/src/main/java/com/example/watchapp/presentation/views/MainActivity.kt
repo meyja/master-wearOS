@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -32,12 +33,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Switch
 import androidx.wear.compose.material.SwitchDefaults
 import androidx.wear.compose.material.Text
 import com.example.watchapp.presentation.repositories.MainRepository
 import com.example.watchapp.presentation.data.SelfReportContract
 import com.example.watchapp.presentation.theme.WatchAppTheme
+import com.example.watchapp.presentation.theme.greenTick
 import com.example.watchapp.presentation.viewModels.MainViewModel
 
 
@@ -180,12 +183,14 @@ fun MonitoringApp(running: Boolean, onStart: () -> Unit, onStop: () -> Unit, sta
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(text = "Toggle stress detection:")
+        Spacer(modifier = Modifier.height(16.dp))
         Switch(
             colors = SwitchDefaults.colors(
-            checkedThumbColor = Color.Red,
-            checkedTrackColor = Color.Gray,
-            uncheckedThumbColor = Color.LightGray,
-            uncheckedTrackColor = Color.Gray
+                checkedThumbColor = greenTick,
+                checkedTrackColor = Color.Gray,
+                uncheckedThumbColor = Color.LightGray,
+                uncheckedTrackColor = Color.Gray
             ),
             modifier = Modifier.scale(2.5f),
             checked = running,
