@@ -251,17 +251,18 @@ class StressService() : Service(), SensorEventListener {
 
     // Recieves sensor data that service is registered to
     override fun onSensorChanged(event: SensorEvent) {
-        val hr = event.values[0]
+        if(event.sensor.stringType == "android.sensor.heart_rate") {
+            val hr = event.values[0]
 
-        if(hr == 0.0f) {
-            amountOfZeroesInARow ++
-            if (amountOfZeroesInARow >= zeroLimit) {
-                msgStop("No heartrate register for a period of time, return to app to turn on")
+            if(hr == 0.0f) {
+                amountOfZeroesInARow ++
+                if (amountOfZeroesInARow >= zeroLimit) {
+                    msgStop("No heartrate register for a period of time, return to app to turn on")
+                }
             }
+            Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
+            stressStreamManager!!.addHrDatapoint(hr)
         }
-        Log.d(TAG, "onSensorChanged_TYPE_HEART_RATE: hr ${hr}")
-        stressStreamManager!!.addHrDatapoint(hr)
-
     }
 
     // If no hr data recieve for a long time, send notification that service is stopped and stop
