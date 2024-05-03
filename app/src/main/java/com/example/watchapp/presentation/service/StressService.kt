@@ -213,7 +213,7 @@ class StressService() : Service(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 hr,
-                100_000_000
+                1_000_000
             )
             Log.d(TAG, "Sensor Manager registered HR sensor listener.")
         } ?: run {
