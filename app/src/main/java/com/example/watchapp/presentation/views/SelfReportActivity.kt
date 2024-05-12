@@ -92,6 +92,7 @@ class SelfReportActivity: ComponentActivity() {
                         this,
                         500
                     ) // takes noise measurements when the activity is started
+                    if (dB == -1.0) finishReport(-1) // Failed to retrieve dB
                     viewModel.setDB(dB)
                     viewModel.setUUID(getSessionId())
 
